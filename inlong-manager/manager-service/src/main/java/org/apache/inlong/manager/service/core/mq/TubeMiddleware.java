@@ -44,19 +44,21 @@ public class TubeMiddleware implements Middleware {
 
     @Override
     public int save(InlongGroupMqExtBase mqExtBaseInfo) {
-        log.error("There is no implementation about this mq type:{}", type());
+        log.warn("There is no implementation about this mq type:{}", type());
         return -1;
     }
 
     @Override
     public InlongGroupMqExtBase get(String groupId) {
-        log.error("There is no implementation about this mq type:{}", type());
-        return null;
+        InlongGroupMqExtBase mqExtBase = new InlongGroupMqExtBase();
+        mqExtBase.setMiddlewareType(MQType.TUBE.getType());
+        mqExtBase.setInlongGroupId(groupId);
+        return mqExtBase;
     }
 
     @Override
     public int update(InlongGroupMqExtBase mqExtBaseInfo) {
-        log.error("There is no implementation about this mq type:{}", type());
+        log.warn("There is no implementation about this mq type:{}", type());
         return -1;
     }
 
@@ -72,15 +74,15 @@ public class TubeMiddleware implements Middleware {
 
     @Override
     public InlongGroupInfo packSpecificInfo(InlongGroupInfo groupInfo) {
-        log.debug("begin to packing specific information about tube mq middleware.");
+        log.warn("begin to packing specific information about tube mq middleware.");
         groupInfo.setTubeMaster(commonOperateService.getSpecifiedParam(InlongGroupSettings.TUBE_MASTER_URL));
         return groupInfo;
     }
 
     @Override
     public int delete(String groupId) {
-        log.error("There is no implementation about this mq type:{}", type());
+        log.warn("There is no implementation about this mq type:{}", type());
         return -1;
     }
-    
+
 }
