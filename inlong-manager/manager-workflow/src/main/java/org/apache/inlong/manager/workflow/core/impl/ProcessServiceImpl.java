@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.workflow.core.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.enums.TaskStatus;
 import org.apache.inlong.manager.common.util.Preconditions;
 import org.apache.inlong.manager.dao.entity.WorkflowTaskEntity;
@@ -34,6 +35,7 @@ import java.util.List;
 /**
  * WorkflowProcess service
  */
+@Slf4j
 public class ProcessServiceImpl implements ProcessService {
 
     private final ProcessorExecutor processorExecutor;
@@ -57,6 +59,7 @@ public class ProcessServiceImpl implements ProcessService {
 
         // build context
         WorkflowContext context = workflowContextBuilder.buildContextForProcess(name, applicant, form);
+        log.info("==> built workflow context = {}", context);
         this.processorExecutor.executeStart(context.getProcess().getStartEvent(), context);
         return context;
     }

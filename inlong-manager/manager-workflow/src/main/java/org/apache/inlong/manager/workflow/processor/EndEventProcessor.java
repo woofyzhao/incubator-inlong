@@ -63,6 +63,7 @@ public class EndEventProcessor implements ElementProcessor<EndEvent> {
 
     @Override
     public void create(EndEvent element, WorkflowContext context) {
+        log.info("==> end event processor.create: nothing to do");
         //do nothing
     }
 
@@ -84,8 +85,10 @@ public class EndEventProcessor implements ElementProcessor<EndEvent> {
         processEntity.setStatus(getProcessStatus(actionContext.getAction()).name());
         processEntity.setEndTime(new Date());
         processEntityMapper.update(processEntity);
-        processEventNotifier.notify(mapToEvent(actionContext.getAction()), context);
+        log.info("==> process end event complete, update process entity: {}", processEntity);
 
+        processEventNotifier.notify(mapToEvent(actionContext.getAction()), context);
+        log.info("==> notify process event {}", mapToEvent(actionContext.getAction()).name());
         return true;
     }
 

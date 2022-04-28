@@ -96,6 +96,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult start(ProcessName process, String applicant, ProcessForm form) {
+        LOGGER.info("==> start workflow process {}, applicant = {}, process form = {}", process, applicant, form);
         WorkflowContext context = workflowEngine.processService().start(process.name(), applicant, form);
         return WorkflowBeanUtils.result(context);
     }
@@ -103,6 +104,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult cancel(Integer processId, String operator, String remark) {
+        LOGGER.info("==> cancel workflow process, id = {}", processId);
         WorkflowContext context = workflowEngine.processService().cancel(processId, operator, remark);
         return WorkflowBeanUtils.result(context);
     }
@@ -110,6 +112,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult approve(Integer taskId, String remark, TaskForm form, String operator) {
+        LOGGER.info("==> approve workflow task, id = {}, task form = {}", taskId, form);
         WorkflowContext context = workflowEngine.taskService().approve(taskId, remark, form, operator);
         return WorkflowBeanUtils.result(context);
     }
@@ -117,6 +120,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult reject(Integer taskId, String remark, String operator) {
+        LOGGER.info("==> reject workflow task, id = {}, remark = {}", taskId, remark);
         WorkflowContext context = workflowEngine.taskService().reject(taskId, remark, operator);
         return WorkflowBeanUtils.result(context);
     }
@@ -124,6 +128,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult transfer(Integer taskId, String remark, List<String> to, String operator) {
+        LOGGER.info("==> transfe workflow task, id = {}, remark = {}, to = {}", taskId, remark, to);
         WorkflowContext context = workflowEngine.taskService().transfer(taskId, remark, to, operator);
         return WorkflowBeanUtils.result(context);
     }
@@ -131,6 +136,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @Transactional(noRollbackFor = WorkflowNoRollbackException.class, rollbackFor = Exception.class)
     public WorkflowResult complete(Integer taskId, String remark, String operator) {
+        LOGGER.info("==> complete workflow task, id = {}, remark = {}", taskId, remark);
         WorkflowContext context = workflowEngine.taskService().complete(taskId, remark, operator);
         return WorkflowBeanUtils.result(context);
     }

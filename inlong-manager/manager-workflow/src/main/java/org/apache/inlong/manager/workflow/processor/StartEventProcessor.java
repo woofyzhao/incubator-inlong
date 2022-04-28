@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.workflow.processor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.enums.ProcessStatus;
 import org.apache.inlong.manager.common.util.JsonUtils;
 import org.apache.inlong.manager.common.util.Preconditions;
@@ -36,6 +37,7 @@ import java.util.Date;
 /**
  * Start event handler
  */
+@Slf4j
 public class StartEventProcessor extends AbstractNextableElementProcessor<StartEvent> {
 
     private final WorkflowProcessEntityMapper processEntityMapper;
@@ -57,6 +59,7 @@ public class StartEventProcessor extends AbstractNextableElementProcessor<StartE
         String applicant = context.getApplicant();
         WorkflowProcess process = context.getProcess();
         ProcessForm form = context.getProcessForm();
+        log.info("==> create start event for process {}, process form class = {}", process.getName(), form.getClass());
         if (process.getFormClass() != null) {
             Preconditions.checkNotNull(form, "form cannot be null");
             Preconditions.checkTrue(form.getClass().isAssignableFrom(process.getFormClass()),
@@ -66,6 +69,7 @@ public class StartEventProcessor extends AbstractNextableElementProcessor<StartE
             Preconditions.checkNull(form, "no form required");
         }
         WorkflowProcessEntity processEntity = saveProcessEntity(applicant, process, form);
+        log.info("==> process entity saved: {}", processEntity);
         context.setProcessEntity(processEntity);
         context.setActionContext(new WorkflowContext.ActionContext().setAction(WorkflowAction.START));
     }
@@ -77,6 +81,7 @@ public class StartEventProcessor extends AbstractNextableElementProcessor<StartE
 
     @Override
     public boolean complete(WorkflowContext context) {
+        log.info("==> process start event complete, notify process event {}", ProcessEvent.CREATE.name());
         processEventNotifier.notify(ProcessEvent.CREATE, context);
         return true;
     }

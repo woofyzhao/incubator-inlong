@@ -26,6 +26,7 @@ import org.apache.inlong.manager.workflow.event.EventListenerManager;
 import org.apache.inlong.manager.workflow.event.EventListenerNotifier;
 import org.apache.inlong.manager.workflow.event.LogableEventListener;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -57,22 +58,36 @@ public class TaskEventNotifier implements EventListenerNotifier<TaskEvent> {
         this.eventLogMapper = eventLogMapper;
     }
 
+    public void trace(WorkflowTask task, TaskEvent event, String source, List<TaskEventListener> listeners) {
+        log.info("==> executing notified listeners for task {}, event {}, listener source {}, num {}",
+                task.getName(), event, source, listeners.size());
+        listeners.forEach(l -> log.info("To execute: {} listening on {}", l.name(), l.event()));
+    }
+
     @Override
     public void notify(TaskEvent event, WorkflowContext sourceContext) {
         final WorkflowContext context = sourceContext.clone();
         WorkflowTask task = (WorkflowTask) context.getCurrentElement();
+
+        trace(task, event, "eventListenerManager.syncListeners", eventListenerManager.syncListeners(event));
         eventListenerManager.syncListeners(event).forEach(syncLogableNotify(context));
 
+        trace(task, event, "task.syncListeners", task.syncListeners(event));
         task.syncListeners(event).forEach(syncLogableNotify(context));
 
+        trace(task, event, "eventListenerManager.asyncListeners", eventListenerManager.asyncListeners(event));
         eventListenerManager.asyncListeners(event).forEach(asyncLogableNotify(context));
 
+        trace(task, event, "task.asyncListeners", task.asyncListeners(event));
         task.asyncListeners(event).forEach(asyncLogableNotify(context));
     }
 
     @Override
     public void notify(String listenerName, boolean forceSync, WorkflowContext sourceContext) {
         final WorkflowContext context = sourceContext.clone();
+
+        log.info("==> listener {} notified by name, forceSync = {}, context = {}", listenerName, forceSync, context);
+
         Optional.ofNullable(this.eventListenerManager.listener(listenerName))
                 .ifPresent(logableNotify(forceSync, context));
 
@@ -95,6 +110,7 @@ public class TaskEventNotifier implements EventListenerNotifier<TaskEvent> {
     private Consumer<TaskEventListener> asyncLogableNotify(WorkflowContext context) {
         return listener -> executorService.execute(() -> {
             try {
+                log.info("==> start running async listener {} on {}", listener.name(), listener.event());
                 logableEventListener(listener).listen(context);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -103,7 +119,11 @@ public class TaskEventNotifier implements EventListenerNotifier<TaskEvent> {
     }
 
     private Consumer<TaskEventListener> syncLogableNotify(WorkflowContext context) {
-        return listener -> logableEventListener(listener).listen(context);
+        return listener -> {
+            log.info("==> start running sync listener {} on {}", listener.name(), listener.event());
+            logableEventListener(listener).listen(context);
+            return;
+        };
     }
 
     private LogableTaskEventListener logableEventListener(TaskEventListener listener) {

@@ -89,20 +89,25 @@ public class ProcessorExecutorImpl implements ProcessorExecutor {
     public void executeStart(Element element, WorkflowContext context) {
         ElementProcessor processor = this.getProcessor(element.getClass());
         context.setCurrentElement(element);
+        log.info("==> start workflow element: {}, processor = {}", element, processor.getClass().getName());
 
         // If the current component needs to be skipped, proceed directly to the next one
         if (isSkipCurrentElement(element, context)) {
+            log.info("==> skip current element");
             executeSkipAndNext(element, context);
             return;
         }
 
+        log.info("==> processor.create workflow element {}", element.getName());
         processor.create(element, context);
         if (processor.pendingForAction(context)) {
+            log.info("==> element {} pending for action", element.getName());
             return;
         }
 
         // If it is a continuous task execution transaction isolation
         if (element instanceof WorkflowTask) {
+            log.info("==> execute complete in transaction for workflow task element {}", element.getName());
             transactionHelper.execute(executeCompleteInTransaction(element, context),
                     TransactionDefinition.PROPAGATION_NESTED);
             return;
@@ -115,11 +120,17 @@ public class ProcessorExecutorImpl implements ProcessorExecutor {
     public void executeComplete(Element element, WorkflowContext context) {
         ElementProcessor processor = this.getProcessor(element.getClass());
         context.setCurrentElement(element);
+
+        log.info("==> processor.complete workflow element {}", element.getName());
         boolean completed = processor.complete(context);
         if (!completed) {
+            log.warn("==> element {} not completed", element.getName());
             return;
         }
         List<Element> nextElements = processor.next(element, context);
+        log.info("==> element {} next elements = {}, num = {}", element.getName(), nextElements, nextElements.size());
+
+        log.info("==> starting each next elements");
         nextElements.forEach(next -> executeStart(next, context));
     }
 
@@ -145,11 +156,14 @@ public class ProcessorExecutorImpl implements ProcessorExecutor {
 
         // Execute skip logic
         SkipableElementProcessor skipableProcessor = (SkipableElementProcessor) processor;
+        log.info("==> skipableProcessor.skip element {}", element.getName());
         skipableProcessor.skip(element, context);
 
         // Execute next
         context.getActionContext().setAction(((NextableElement) element).defaultNextAction());
         List<Element> nextElements = processor.next(element, context);
+        log.info("==> element {} next elements = {}, num = {}", element.getName(), nextElements, nextElements.size());
+        log.info("==> starting each next elements of element {}", element.getName());
         nextElements.forEach(next -> executeStart(next, context));
     }
 

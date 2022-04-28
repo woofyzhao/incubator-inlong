@@ -66,6 +66,7 @@ public class GroupApproveProcessListener implements ProcessEventListener {
         NewGroupProcessForm form = (NewGroupProcessForm) context.getProcessForm();
         String groupId = form.getInlongGroupId();
         InlongGroupInfo groupInfo = groupService.get(groupId);
+        log.info("==> new group process approved, group = {}, info = {}", groupId, groupInfo);
         GroupMode mode = GroupMode.parseGroupMode(groupInfo);
         switch (mode) {
             case NORMAL:
@@ -82,6 +83,7 @@ public class GroupApproveProcessListener implements ProcessEventListener {
     }
 
     private void createGroupResource(WorkflowContext context, InlongGroupInfo groupInfo) {
+        log.info("==> start createGroupResource");
         GroupResourceProcessForm processForm = new GroupResourceProcessForm();
         processForm.setGroupInfo(groupInfo);
         String username = context.getApplicant();

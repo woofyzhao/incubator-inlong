@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.workflow.core.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.workflow.WorkflowAction;
 import org.apache.inlong.manager.workflow.WorkflowContext;
 import org.apache.inlong.manager.workflow.core.ProcessorExecutor;
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * WorkflowTask service
  */
+@Slf4j
 public class TaskServiceImpl implements TaskService {
 
     private final ProcessorExecutor processorExecutor;
@@ -44,12 +46,15 @@ public class TaskServiceImpl implements TaskService {
     public WorkflowContext approve(Integer taskId, String remark, TaskForm form, String operator) {
         WorkflowContext context = contextBuilder.buildContextForTask(taskId, WorkflowAction.APPROVE, form, remark,
                 operator);
+        log.info("==> approving task id = {}, name = {}, context = {}", taskId,
+                context.getActionContext().getTask().getName(), context);
         processorExecutor.executeComplete(context.getActionContext().getTask(), context);
         return context;
     }
 
     @Override
     public WorkflowContext reject(Integer taskId, String remark, String operator) {
+        log.info("==> rejecting task id = {}, remark = {}", taskId, remark);
         WorkflowContext context = contextBuilder.buildContextForTask(taskId, WorkflowAction.REJECT, remark, operator);
         processorExecutor.executeComplete(context.getActionContext().getTask(), context);
         return context;
@@ -57,6 +62,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public WorkflowContext transfer(Integer taskId, String remark, List<String> to, String operator) {
+        log.info("==> transfering task id = {}, to = {}", taskId, to);
         WorkflowContext context = contextBuilder
                 .buildContextForTask(taskId, WorkflowAction.TRANSFER, to, remark, operator);
         processorExecutor.executeComplete(context.getActionContext().getTask(), context);
@@ -68,6 +74,8 @@ public class TaskServiceImpl implements TaskService {
     public WorkflowContext complete(Integer taskId, String remark, String operator) {
         WorkflowContext context = contextBuilder
                 .buildContextForTask(taskId, WorkflowAction.COMPLETE, remark, operator);
+        log.info("==> completing task id = {}, name = {}, context = {}", taskId,
+                context.getActionContext().getTask().getName(), context);
         processorExecutor.executeComplete(context.getActionContext().getTask(), context);
         return context;
     }

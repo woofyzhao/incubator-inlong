@@ -51,6 +51,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
 
     @Override
     public WorkflowProcess defineProcess() {
+        log.info("==> define workflow: CreateGroupWorkflowDefinition");
 
         // Configuration process
         WorkflowProcess process = new WorkflowProcess();
@@ -76,6 +77,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
         initDataSourceTask.addServiceTaskType(ServiceTaskType.INIT_SOURCE);
         initDataSourceTask.addListenerProvider(serviceTaskListenerFactory);
         process.addTask(initDataSourceTask);
+        log.info("==> add initDataSourceTask: {}", initDataSourceTask);
 
         // init MQ resource
         ServiceTask initMQResourceTask = new ServiceTask();
@@ -84,6 +86,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
         initMQResourceTask.addServiceTaskType(ServiceTaskType.INIT_MQ);
         initMQResourceTask.addListenerProvider(serviceTaskListenerFactory);
         process.addTask(initMQResourceTask);
+        log.info("==> add initMQResourceTask: {}", initMQResourceTask);
 
         // init Sort resource
         ServiceTask initSortResourceTask = new ServiceTask();
@@ -92,6 +95,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
         initSortResourceTask.addServiceTaskType(ServiceTaskType.INIT_SORT);
         initSortResourceTask.addListenerProvider(serviceTaskListenerFactory);
         process.addTask(initSortResourceTask);
+        log.info("==> add initSortResourceTask: {}", initSortResourceTask);
 
         // init sink
         ServiceTask initSinkTask = new ServiceTask();
@@ -100,6 +104,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
         initSinkTask.addServiceTaskType(ServiceTaskType.INIT_SINK);
         initSinkTask.addListenerProvider(serviceTaskListenerFactory);
         process.addTask(initSinkTask);
+        log.info("==> add initSinkTask: {}", initSinkTask);
 
         // End node
         EndEvent endEvent = new EndEvent();
@@ -110,6 +115,7 @@ public class CreateGroupWorkflowDefinition implements WorkflowDefinition {
         initMQResourceTask.addNext(initSortResourceTask);
         initSortResourceTask.addNext(initSinkTask);
         initSinkTask.addNext(endEvent);
+        log.info("==> workflow process CreateGroupWorkflowDefinition created: {}", process);
 
         return process;
     }

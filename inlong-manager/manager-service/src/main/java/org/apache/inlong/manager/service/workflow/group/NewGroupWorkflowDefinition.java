@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.service.workflow.group;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.pojo.workflow.WorkflowApproverFilterContext;
 import org.apache.inlong.manager.common.pojo.workflow.form.InlongGroupApproveForm;
 import org.apache.inlong.manager.common.pojo.workflow.form.NewGroupProcessForm;
@@ -39,6 +40,7 @@ import java.util.List;
 /**
  * New inlong group process definition
  */
+@Slf4j
 @Component
 public class NewGroupWorkflowDefinition implements WorkflowDefinition {
 
@@ -55,6 +57,8 @@ public class NewGroupWorkflowDefinition implements WorkflowDefinition {
 
     @Override
     public WorkflowProcess defineProcess() {
+        log.info("==> define work flow: NewGroupWorkflowDefinition");
+
         // Configuration process
         WorkflowProcess process = new WorkflowProcess();
         process.setType(getProcessName().getDisplayName());

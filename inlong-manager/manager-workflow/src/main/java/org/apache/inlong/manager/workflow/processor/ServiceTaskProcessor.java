@@ -18,6 +18,7 @@
 package org.apache.inlong.manager.workflow.processor;
 
 import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.inlong.manager.common.enums.TaskStatus;
 import org.apache.inlong.manager.common.util.JsonUtils;
@@ -43,6 +44,7 @@ import java.util.Set;
 /**
  * System task processor
  */
+@Slf4j
 public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
 
     private static final Set<WorkflowAction> SUPPORT_ACTIONS = ImmutableSet.of(
@@ -69,9 +71,12 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
 
     @Override
     public void create(ServiceTask serviceTask, WorkflowContext context) {
+        log.info("==> create service task {}", serviceTask);
         WorkflowTaskEntity workflowTaskEntity = saveTaskEntity(serviceTask, context);
+        log.info("==> workflow task entity saved: {}", workflowTaskEntity);
         context.getNewTaskList().add(workflowTaskEntity);
         serviceTask.initListeners(context);
+        log.info("==> workflow task {} listener initialized", serviceTask.getName());
         this.taskEventNotifier.notify(TaskEvent.CREATE, context);
     }
 
@@ -84,6 +89,7 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
                         .setTaskEntity(context.getNewTaskList().get(0))
         );
         context.getNewTaskList().clear();
+        log.info("==> set action context workflow action = COMPLETE and clear new task list");
         return false;
     }
 
@@ -95,14 +101,18 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
         WorkflowTaskEntity workflowTaskEntity = actionContext.getTaskEntity();
         Preconditions.checkTrue(ALLOW_COMPLETE_STATE.contains(TaskStatus.valueOf(workflowTaskEntity.getStatus())),
                 "task status should allow complete");
-
+        log.info("==> auto complete service task {}", workflowTaskEntity.getName());
         try {
+            log.info("==> notify task event {}", TaskEvent.COMPLETE);
             this.taskEventNotifier.notify(TaskEvent.COMPLETE, context);
             completeTaskEntity(actionContext, workflowTaskEntity, TaskStatus.COMPLETED);
             return true;
         } catch (Exception e) {
+            log.error("==> auto complete failed: {}", e.getMessage());
             completeTaskEntity(actionContext, workflowTaskEntity, TaskStatus.FAILED);
+            log.info("==> notify task event {}", TaskEvent.FAIL);
             this.taskEventNotifier.notify(TaskEvent.FAIL, context);
+            log.info("==> notify process event {}", ProcessEvent.FAIL);
             this.processEventNotifier.notify(ProcessEvent.FAIL, context);
             return false;
         }
@@ -136,6 +146,7 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
         taskEntity.setFormData(JsonUtils.toJson(actionContext.getForm()));
         taskEntity.setEndTime(new Date());
         taskEntityMapper.update(taskEntity);
+        log.info("==> task entity updated: {}", taskEntity);
     }
 
 }

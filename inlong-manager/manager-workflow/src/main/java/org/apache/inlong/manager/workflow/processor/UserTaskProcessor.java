@@ -20,6 +20,7 @@ package org.apache.inlong.manager.workflow.processor;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.inlong.manager.common.enums.TaskStatus;
@@ -47,6 +48,7 @@ import java.util.Set;
 /**
  * User task processor
  */
+@Slf4j
 public class UserTaskProcessor extends AbstractTaskProcessor<UserTask> {
 
     private static final Set<WorkflowAction> SHOULD_CHECK_OPERATOR_ACTIONS = ImmutableSet
@@ -71,17 +73,22 @@ public class UserTaskProcessor extends AbstractTaskProcessor<UserTask> {
     @Override
     public void create(UserTask userTask, WorkflowContext context) {
         List<String> approvers = userTask.getApproverAssign().assign(context);
+        log.info("==> create user task {}, approvers = {}", userTask, approvers);
         Preconditions.checkNotEmpty(approvers, "cannot assign approvers for task: " + userTask.getDisplayName()
                 + ", as the approvers was empty");
 
         if (!userTask.isNeedAllApprove()) {
+            log.info("==> need not all to approve, coalesce approvers");
             approvers = Collections.singletonList(StringUtils.join(approvers, WorkflowTaskEntity.APPROVERS_DELIMITER));
         }
 
         WorkflowProcessEntity processEntity = context.getProcessEntity();
         approvers.stream()
-                .map(approver -> saveTaskEntity(userTask, processEntity, approver))
-                .forEach(context.getNewTaskList()::add);
+                .map(approver -> {
+                    WorkflowTaskEntity entity = saveTaskEntity(userTask, processEntity, approver);
+                    log.info("==> task entity saved: {}", entity);
+                    return entity;
+                }).forEach(context.getNewTaskList()::add);
 
         taskEventNotifier.notify(TaskEvent.CREATE, context);
     }
@@ -101,9 +108,12 @@ public class UserTaskProcessor extends AbstractTaskProcessor<UserTask> {
         Preconditions.checkTrue(TaskStatus.PENDING.name().equalsIgnoreCase(workflowTaskEntity.getStatus()),
                 "task status should be pending");
 
+        log.info("==> user task {} complete", workflowTaskEntity.getName());
         checkOperator(actionContext);
+        log.info("==> check operator ok");
         completeTaskInstance(actionContext);
 
+        log.info("==> notify task event {}", toTaskEvent(actionContext.getAction()));
         this.taskEventNotifier.notify(toTaskEvent(actionContext.getAction()), context);
         return true;
     }
@@ -117,8 +127,11 @@ public class UserTaskProcessor extends AbstractTaskProcessor<UserTask> {
                     workflowTaskEntity.getName(), TaskStatus.PENDING);
 
             if (pendingCount > 0) {
+                log.warn("==> user task {} not approved by all approvers, pendingCount = {}", userTask.getName(),
+                        pendingCount);
                 return Lists.newArrayList();
             }
+            log.info("==> user task {} approved by all approvers", userTask.getName());
         }
 
         return super.next(userTask, context);
@@ -182,6 +195,7 @@ public class UserTaskProcessor extends AbstractTaskProcessor<UserTask> {
         taskEntity.setEndTime(new Date());
         taskEntity.setExtParams(handlerExt(actionContext, taskEntity.getExtParams()));
         taskEntityMapper.update(taskEntity);
+        log.info("==> task entity updated: {}", taskEntity);
     }
 
     private boolean needForm(UserTask userTask, WorkflowAction workflowAction) {
