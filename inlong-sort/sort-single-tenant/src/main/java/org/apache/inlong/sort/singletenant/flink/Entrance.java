@@ -18,6 +18,7 @@
 package org.apache.inlong.sort.singletenant.flink;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -61,15 +62,18 @@ import org.apache.inlong.sort.util.ParameterTool;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.inlong.sort.singletenant.flink.kafka.KafkaSinkBuilder.buildKafkaSink;
 import static org.apache.inlong.sort.singletenant.flink.pulsar.PulsarSourceBuilder.buildPulsarSource;
 import static org.apache.inlong.sort.singletenant.flink.pulsar.PulsarSourceBuilder.buildTDMQPulsarSource;
 
+@Slf4j
 public class Entrance {
 
     public static void main(String[] args) throws Exception {
+        log.debug("==> sort started with args = {}", args);
         final ParameterTool parameterTool = ParameterTool.fromArgs(args);
         final Configuration config = parameterTool.getConfiguration();
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -80,6 +84,7 @@ public class Entrance {
         env.getCheckpointConfig().setCheckpointTimeout(config.getInteger(Constants.CHECKPOINT_TIMEOUT_MS));
         env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
         boolean lightweight = config.getBoolean(Constants.LIGHTWEIGHT);
+        log.debug("==> lightweight: {}", lightweight);
         if (lightweight) {
             EnvironmentSettings settings = EnvironmentSettings.newInstance().useBlinkPlanner()
                     .inStreamingMode().build();
@@ -92,6 +97,7 @@ public class Entrance {
         } else {
             final String clusterId = checkNotNull(config.getString(Constants.CLUSTER_ID));
             final DataFlowInfo dataFlowInfo = getDataflowInfoFromFile(config.getString(Constants.DATAFLOW_INFO_FILE));
+            log.debug("==> cluster id: {}", clusterId);
             DataStream<SerializedRecord> sourceStream = buildSourceStream(
                     env,
                     config,
@@ -131,6 +137,8 @@ public class Entrance {
         final int sourceParallelism = config.getInteger(Constants.SOURCE_PARALLELISM);
         final boolean orderlyOutput = config.getBoolean(Constants.JOB_ORDERLY_OUTPUT);
         DataStream<SerializedRecord> sourceStream;
+        log.debug("==> orderlyOutput: {}, sourceType: {}, sourceParallelism: {}", orderlyOutput, sourceType,
+                sourceParallelism);
 
         if (sourceType.equals(Constants.SOURCE_TYPE_PULSAR)) {
             checkState(sourceInfo instanceof PulsarSourceInfo);

@@ -17,6 +17,7 @@
 
 package org.apache.inlong.sort.singletenant.flink.pulsar;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.inlong.sort.configuration.Configuration;
 import org.apache.inlong.sort.flink.pulsar.PulsarDeserializationSchema;
@@ -30,6 +31,7 @@ import org.apache.pulsar.client.api.Message;
 import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 public class PulsarSourceBuilder {
 
     public static PulsarSourceFunction<SerializedRecord> buildPulsarSource(
@@ -41,12 +43,14 @@ public class PulsarSourceBuilder {
         Map<String, String> configMap = config.toMap();
         if (properties != null && !properties.isEmpty()) {
             for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                log.debug("==> pulsar source property entry {} = {}", entry.getKey(), entry.getValue());
                 configMap.put(entry.getKey(), entry.getValue().toString());
             }
         }
 
         org.apache.flink.configuration.Configuration flinkConfig =
                 org.apache.flink.configuration.Configuration.fromMap(configMap);
+        log.debug("flink.configuration = {}", flinkConfig);
 
         return new PulsarSourceFunction<>(
                 sourceInfo.getAdminUrl(),

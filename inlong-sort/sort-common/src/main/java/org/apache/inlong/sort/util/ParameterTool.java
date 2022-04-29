@@ -19,7 +19,10 @@
 package org.apache.inlong.sort.util;
 
 import com.google.common.base.Preconditions;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.inlong.sort.configuration.Configuration;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -38,7 +41,6 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  * This class provides simple utility methods for reading and parsing program arguments from
@@ -46,14 +48,30 @@ import org.apache.commons.lang3.math.NumberUtils;
  *
  * <p>Copied from Flink project with a bit of changing.</p>
  */
+@Slf4j
 public class ParameterTool implements Serializable, Cloneable {
-
-    private static final long serialVersionUID = 1L;
 
     protected static final String NO_VALUE_KEY = "__NO_VALUE_KEY";
     protected static final String DEFAULT_UNDEFINED = "<undefined>";
+    private static final long serialVersionUID = 1L;
 
     // ------------------ Constructors ------------------------
+    // ------------------ ParameterUtil  ------------------------
+    protected final Map<String, String> data;
+    // data which is only used on the client and does not need to be transmitted
+    protected transient Map<String, String> defaultData;
+    protected transient Set<String> unrequestedParameters;
+
+    private ParameterTool(Map<String, String> data) {
+        this.data = Collections.unmodifiableMap(new HashMap<>(data));
+
+        this.defaultData = new ConcurrentHashMap<>(data.size());
+
+        this.unrequestedParameters = Collections
+                .newSetFromMap(new ConcurrentHashMap<>(data.size()));
+
+        unrequestedParameters.addAll(data.keySet());
+    }
 
     /**
      * Returns {@link ParameterTool} for the given arguments. The arguments are keys followed by
@@ -173,24 +191,6 @@ public class ParameterTool implements Serializable, Cloneable {
      */
     public static ParameterTool fromSystemProperties() {
         return fromMap((Map) System.getProperties());
-    }
-
-    // ------------------ ParameterUtil  ------------------------
-    protected final Map<String, String> data;
-
-    // data which is only used on the client and does not need to be transmitted
-    protected transient Map<String, String> defaultData;
-    protected transient Set<String> unrequestedParameters;
-
-    private ParameterTool(Map<String, String> data) {
-        this.data = Collections.unmodifiableMap(new HashMap<>(data));
-
-        this.defaultData = new ConcurrentHashMap<>(data.size());
-
-        this.unrequestedParameters = Collections
-                .newSetFromMap(new ConcurrentHashMap<>(data.size()));
-
-        unrequestedParameters.addAll(data.keySet());
     }
 
     @Override
@@ -478,6 +478,7 @@ public class ParameterTool implements Serializable, Cloneable {
     public Configuration getConfiguration() {
         final Configuration conf = new Configuration();
         for (Map.Entry<String, String> entry : data.entrySet()) {
+            log.debug("==> config entry: {} = {}", entry.getKey(), entry.getValue());
             conf.setString(entry.getKey(), entry.getValue());
         }
         return conf;
