@@ -17,11 +17,7 @@
 
 package org.apache.inlong.sort.flink.hive;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_COMMITTED_PARTITIONS_CACHE_SIZE;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.inlong.sort.configuration.Configuration;
 import org.apache.inlong.sort.flink.hive.partition.HivePartition;
@@ -30,9 +26,16 @@ import org.apache.inlong.sort.flink.hive.partition.PartitionCommitInfo;
 import org.apache.inlong.sort.flink.hive.partition.PartitionCommitPolicy;
 import org.apache.inlong.sort.protocol.sink.HiveSinkInfo;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_COMMITTED_PARTITIONS_CACHE_SIZE;
+
 /**
  * Hive sink committer.
  */
+@Slf4j
 public class HiveCommitter extends RichSinkFunction<PartitionCommitInfo> {
 
     private static final long serialVersionUID = 3070346386139023521L;
@@ -86,6 +89,7 @@ public class HiveCommitter extends RichSinkFunction<PartitionCommitInfo> {
 
     @Override
     public void invoke(PartitionCommitInfo value, Context context) throws Exception {
+        log.info("==> hive committer invoked, hive partitions = {}", value.getPartitions());
         for (HivePartition partition : value.getPartitions()) {
             if (committedPartitions.get(partition) == null) {
                 committedPartitions.put(partition, true);

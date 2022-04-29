@@ -478,7 +478,7 @@ public class ParameterTool implements Serializable, Cloneable {
     public Configuration getConfiguration() {
         final Configuration conf = new Configuration();
         for (Map.Entry<String, String> entry : data.entrySet()) {
-            log.debug("==> config entry: {} = {}", entry.getKey(), entry.getValue());
+            log.info("==> config entry: {} = {}", entry.getKey(), entry.getValue());
             conf.setString(entry.getKey(), entry.getValue());
         }
         return conf;

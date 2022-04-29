@@ -18,6 +18,7 @@
 
 package org.apache.inlong.sort.singletenant.flink.deserialization;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.types.Row;
 import org.apache.flink.types.RowKind;
 import org.apache.inlong.sort.configuration.Configuration;
@@ -40,15 +41,14 @@ import java.util.Map;
 
 import static org.apache.flink.shaded.guava18.com.google.common.base.Preconditions.checkNotNull;
 
+@Slf4j
 public class FieldMappingTransformer implements Serializable {
-
-    private static final long serialVersionUID = 7621804808272983217L;
 
     /**
      * Skips time and attribute fields of source record.
      */
     public static final int SOURCE_FIELD_SKIP_STEP = 1;
-
+    private static final long serialVersionUID = 7621804808272983217L;
     private final FieldInfo[] outputFieldInfos;
 
     /**
@@ -57,33 +57,9 @@ public class FieldMappingTransformer implements Serializable {
     private final DefaultValueStrategy defaultValueStrategy;
 
     public FieldMappingTransformer(Configuration config, FieldInfo[] outputFieldInfos) {
+        log.info("==> outputFieldInfos = {}", outputFieldInfos);
         this.defaultValueStrategy = new DefaultValueStrategy(checkNotNull(config));
         this.outputFieldInfos = checkNotNull(outputFieldInfos);
-    }
-
-    public Row transform(Row sourceRow, long dt) {
-        final Row outputRow = new Row(outputFieldInfos.length);
-        int sourceRowIndex = SOURCE_FIELD_SKIP_STEP;
-        Map<String, String> attributes = (Map<String, String>) sourceRow.getField(0);
-        for (int i = 0; i < outputFieldInfos.length; i++) {
-            Object fieldValue = null;
-            if (outputFieldInfos[i] instanceof BuiltInFieldInfo) {
-                BuiltInFieldInfo builtInFieldInfo = (BuiltInFieldInfo) outputFieldInfos[i];
-                fieldValue = transformBuiltInField(builtInFieldInfo, attributes, dt, sourceRow.getKind());
-            } else if (sourceRowIndex < sourceRow.getArity()) {
-                fieldValue = sourceRow.getField(sourceRowIndex);
-                sourceRowIndex++;
-            }
-
-            if (fieldValue == null) {
-                fieldValue = defaultValueStrategy.getDefaultValue(outputFieldInfos[i].getFormatInfo());
-            }
-            outputRow.setField(i, fieldValue);
-        }
-
-        outputRow.setKind(sourceRow.getKind());
-
-        return outputRow;
     }
 
     private static Object transformBuiltInField(
@@ -117,7 +93,7 @@ public class FieldMappingTransformer implements Serializable {
      * Infers the field value of data time from format info. Timestamp, Time, Date are acceptable.
      *
      * @param dataTimeFormatInfo the format info user specified
-     * @param dataTime           original data time in long format
+     * @param dataTime original data time in long format
      * @return the inferred field value
      */
     private static Date inferDataTimeValue(FormatInfo dataTimeFormatInfo, long dataTime) {
@@ -130,5 +106,30 @@ public class FieldMappingTransformer implements Serializable {
             dataTimeValue = new Date(dataTime);
         }
         return dataTimeValue;
+    }
+
+    public Row transform(Row sourceRow, long dt) {
+        final Row outputRow = new Row(outputFieldInfos.length);
+        int sourceRowIndex = SOURCE_FIELD_SKIP_STEP;
+        Map<String, String> attributes = (Map<String, String>) sourceRow.getField(0);
+        for (int i = 0; i < outputFieldInfos.length; i++) {
+            Object fieldValue = null;
+            if (outputFieldInfos[i] instanceof BuiltInFieldInfo) {
+                BuiltInFieldInfo builtInFieldInfo = (BuiltInFieldInfo) outputFieldInfos[i];
+                fieldValue = transformBuiltInField(builtInFieldInfo, attributes, dt, sourceRow.getKind());
+            } else if (sourceRowIndex < sourceRow.getArity()) {
+                fieldValue = sourceRow.getField(sourceRowIndex);
+                sourceRowIndex++;
+            }
+
+            if (fieldValue == null) {
+                fieldValue = defaultValueStrategy.getDefaultValue(outputFieldInfos[i].getFormatInfo());
+            }
+            outputRow.setField(i, fieldValue);
+        }
+
+        outputRow.setKind(sourceRow.getKind());
+        log.info("==> row transformed, dt = {}", dt);
+        return outputRow;
     }
 }

@@ -17,6 +17,7 @@
 
 package org.apache.inlong.sort.singletenant.flink.kafka;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
@@ -31,6 +32,7 @@ import java.util.Properties;
 
 import static org.apache.inlong.sort.configuration.Constants.SINK_KAFKA_PRODUCER_POOL_SIZE;
 
+@Slf4j
 public class KafkaSinkBuilder {
 
     public static SinkFunction<Row> buildKafkaSink(
@@ -41,7 +43,8 @@ public class KafkaSinkBuilder {
     ) {
         String topic = kafkaSinkInfo.getTopic();
         Properties producerProperties = buildProducerProperties(properties, kafkaSinkInfo.getAddress());
-
+        log.info("==> building FlinkKafkaProducer sink with topic = {}, producer properties = {}", topic,
+                producerProperties);
         return new FlinkKafkaProducer<>(
                 topic,
                 schema,

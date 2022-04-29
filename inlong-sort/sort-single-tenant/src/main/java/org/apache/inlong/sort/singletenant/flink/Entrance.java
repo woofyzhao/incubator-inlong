@@ -73,7 +73,7 @@ import static org.apache.inlong.sort.singletenant.flink.pulsar.PulsarSourceBuild
 public class Entrance {
 
     public static void main(String[] args) throws Exception {
-        log.debug("==> sort started with args = {}", args);
+        log.info("==> sort started with args = {}", args);
         final ParameterTool parameterTool = ParameterTool.fromArgs(args);
         final Configuration config = parameterTool.getConfiguration();
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -84,7 +84,7 @@ public class Entrance {
         env.getCheckpointConfig().setCheckpointTimeout(config.getInteger(Constants.CHECKPOINT_TIMEOUT_MS));
         env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
         boolean lightweight = config.getBoolean(Constants.LIGHTWEIGHT);
-        log.debug("==> lightweight: {}", lightweight);
+        log.info("==> lightweight: {}", lightweight);
         if (lightweight) {
             EnvironmentSettings settings = EnvironmentSettings.newInstance().useBlinkPlanner()
                     .inStreamingMode().build();
@@ -97,7 +97,7 @@ public class Entrance {
         } else {
             final String clusterId = checkNotNull(config.getString(Constants.CLUSTER_ID));
             final DataFlowInfo dataFlowInfo = getDataflowInfoFromFile(config.getString(Constants.DATAFLOW_INFO_FILE));
-            log.debug("==> cluster id: {}", clusterId);
+            log.info("==> cluster id: {}", clusterId);
             DataStream<SerializedRecord> sourceStream = buildSourceStream(
                     env,
                     config,
@@ -114,6 +114,7 @@ public class Entrance {
                     dataFlowInfo.getSinkInfo(),
                     dataFlowInfo.getProperties(),
                     dataFlowInfo.getId());
+            log.info("==> start stream executing flink cluster id = {}", clusterId);
             env.execute(clusterId);
         }
     }
@@ -137,7 +138,7 @@ public class Entrance {
         final int sourceParallelism = config.getInteger(Constants.SOURCE_PARALLELISM);
         final boolean orderlyOutput = config.getBoolean(Constants.JOB_ORDERLY_OUTPUT);
         DataStream<SerializedRecord> sourceStream;
-        log.debug("==> orderlyOutput: {}, sourceType: {}, sourceParallelism: {}", orderlyOutput, sourceType,
+        log.info("==> orderlyOutput: {}, sourceType: {}, sourceParallelism: {}", orderlyOutput, sourceType,
                 sourceParallelism);
 
         if (sourceType.equals(Constants.SOURCE_TYPE_PULSAR)) {
@@ -241,7 +242,7 @@ public class Entrance {
             long dataflowId) throws IOException, ClassNotFoundException {
         final String sinkType = checkNotNull(config.getString(Constants.SINK_TYPE));
         final int sinkParallelism = config.getInteger(Constants.SINK_PARALLELISM);
-
+        log.info("==> build sink stream, sinkType = {}, sinkParallelism = {}", sinkType, sinkParallelism);
         switch (sinkType) {
             case Constants.SINK_TYPE_CLICKHOUSE:
                 checkState(sinkInfo instanceof ClickHouseSinkInfo);
@@ -255,7 +256,7 @@ public class Entrance {
             case Constants.SINK_TYPE_HIVE:
                 checkState(sinkInfo instanceof HiveSinkInfo);
                 HiveSinkInfo hiveSinkInfo = (HiveSinkInfo) sinkInfo;
-
+                log.info("==> hive partition len = {}", hiveSinkInfo.getPartitions().length);
                 if (hiveSinkInfo.getPartitions().length == 0) {
                     // The committer operator is not necessary if partition is not existent.
                     sourceStream
@@ -273,7 +274,7 @@ public class Entrance {
                             .name("Hive Committer")
                             .setParallelism(1);
                 }
-
+                log.info("==> hive stream sink added");
                 break;
             case Constants.SINK_TYPE_ICEBERG:
                 checkState(sinkInfo instanceof IcebergSinkInfo);
@@ -291,10 +292,13 @@ public class Entrance {
                 checkState(sinkInfo instanceof KafkaSinkInfo);
                 SerializationSchema<Row> schema = SerializationSchemaFactory.build(sinkInfo.getFields(),
                         ((KafkaSinkInfo) sinkInfo).getSerializationInfo());
+                log.info("==> kafka schema built with fields = {}, getSerializationInfo = {}", sinkInfo.getFields(),
+                        ((KafkaSinkInfo) sinkInfo).getSerializationInfo());
                 sourceStream
                         .addSink(buildKafkaSink((KafkaSinkInfo) sinkInfo, properties, schema, config))
                         .name("Kafka Sink")
                         .setParallelism(sinkParallelism);
+                log.info("==> kafka stream sink added");
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported sink type " + sinkType);

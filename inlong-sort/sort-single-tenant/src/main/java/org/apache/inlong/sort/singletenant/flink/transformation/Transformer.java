@@ -18,9 +18,7 @@
 package org.apache.inlong.sort.singletenant.flink.transformation;
 
 import com.google.common.base.Preconditions;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.types.Row;
@@ -33,6 +31,11 @@ import org.apache.inlong.sort.protocol.transformation.TransformationRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Slf4j
 public class Transformer extends ProcessFunction<Row, Row> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Transformer.class);
@@ -49,6 +52,8 @@ public class Transformer extends ProcessFunction<Row, Row> {
             TransformationInfo transformationInfo,
             FieldInfo[] sourceFieldInfos,
             FieldInfo[] sinkFieldInfos) {
+        log.info("==> setup transformer, sourceFieldInfos = {}, sinkFieldInfos = {}, transformationInfo = {}",
+                sourceFieldInfos, sinkFieldInfos, transformationInfo);
         this.transformationInfo = Preconditions.checkNotNull(transformationInfo);
         this.sourceFieldInfos = Preconditions.checkNotNull(sourceFieldInfos);
         this.sinkFieldInfos = Preconditions.checkNotNull(sinkFieldInfos);
@@ -78,14 +83,17 @@ public class Transformer extends ProcessFunction<Row, Row> {
                         fieldMappingUnit.getSinkFieldInfo().getName(),
                         fieldMappingUnit.getSourceFieldInfo().getName());
             }
+            log.info("==> sinkFieldNameToSourceFieldName = {}", sinkFieldNameToSourceFieldName);
 
             // Get 'source field name' => 'index in source row' map
             final Map<String, Integer> sourceFieldNameToIndex = new HashMap<>();
             for (int i = 0; i < sourceFieldInfos.length; i++) {
                 sourceFieldNameToIndex.put(sourceFieldInfos[i].getName(), i);
             }
+            log.info("==> sourceFieldNameToIndex = {}", sourceFieldNameToIndex);
 
             return row -> {
+                log.info("==> processing row: {}", row.toString());
                 final int sinkFieldsLength = sinkFieldInfos.length;
                 Row sinkRow = new Row(sinkFieldsLength);
                 sinkRow.setKind(row.getKind());
@@ -110,6 +118,7 @@ public class Transformer extends ProcessFunction<Row, Row> {
 
                     sinkRow.setField(i, row.getField(sourceFieldIndex));
                 }
+                log.info("==> source row to sink row transformed");
                 return sinkRow;
             };
         } else {

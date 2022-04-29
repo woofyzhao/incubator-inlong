@@ -17,9 +17,7 @@
 
 package org.apache.inlong.sort.singletenant.flink.deserialization;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.types.Row;
@@ -31,8 +29,12 @@ import org.apache.inlong.sort.configuration.Configuration;
 import org.apache.inlong.sort.configuration.Constants;
 import org.apache.inlong.sort.singletenant.flink.SerializedRecord;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
+@Slf4j
 public class DeserializationFunction extends ProcessFunction<SerializedRecord, Row> {
 
     private static final long serialVersionUID = 6245991845787657154L;
@@ -82,6 +84,7 @@ public class DeserializationFunction extends ProcessFunction<SerializedRecord, R
             Collector<Row> out
     ) throws Exception {
         InLongMsg inLongMsg = InLongMsg.parseFrom(value.getData());
+        log.info("==> parse inLongMsg, raw length = {}, attrs = {}", value.getData().length, inLongMsg.getAttrs());
 
         for (String attr : inLongMsg.getAttrs()) {
             Iterator<byte[]> iterator = inLongMsg.getIterator(attr);

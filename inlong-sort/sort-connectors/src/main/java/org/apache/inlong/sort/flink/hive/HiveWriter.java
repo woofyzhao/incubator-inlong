@@ -17,16 +17,7 @@
 
 package org.apache.inlong.sort.flink.hive;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_CHECK_INTERVAL;
-import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_FILE_SIZE;
-import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_ROLLOVER_INTERVAL;
-
-import java.io.IOException;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.serialization.BulkWriter;
 import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.core.fs.Path;
@@ -55,27 +46,33 @@ import org.apache.inlong.sort.protocol.sink.HiveSinkInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_CHECK_INTERVAL;
+import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_FILE_SIZE;
+import static org.apache.inlong.sort.configuration.Constants.SINK_HIVE_ROLLING_POLICY_ROLLOVER_INTERVAL;
+
 /**
  * Hive sink writer.
  */
+@Slf4j
 public class HiveWriter extends ProcessFunction<Row, PartitionCommitInfo>
         implements CheckpointedFunction, CheckpointListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(HiveWriter.class);
 
     private static final long serialVersionUID = 4293562058643851159L;
-
-    private final long dataFlowId;
-
-    private final StreamingFileSink<Row> fileWriter;
-
-    private final Configuration configuration;
-
-    private transient FileWriterContext fileWriterContext;
-
-    private transient List<HivePartition> newPartitions;
-
     private static UserGroupInformation proxyUgi;
+    private final long dataFlowId;
+    private final StreamingFileSink<Row> fileWriter;
+    private final Configuration configuration;
+    private transient FileWriterContext fileWriterContext;
+    private transient List<HivePartition> newPartitions;
 
     public HiveWriter(Configuration configuration, long dataFlowId, HiveSinkInfo hiveSinkInfo) {
         this.configuration = checkNotNull(configuration);
@@ -147,6 +144,7 @@ public class HiveWriter extends ProcessFunction<Row, PartitionCommitInfo>
 
     @Override
     public void processElement(Row in, Context context, Collector<PartitionCommitInfo> collector) throws Exception {
+        log.info("==> hive writer processing element row: {}", in);
         doAsWithUGI(proxyUgi, () -> {
             fileWriter.invoke(in, fileWriterContext.setContext(context));
             if (!newPartitions.isEmpty()) {
@@ -181,6 +179,33 @@ public class HiveWriter extends ProcessFunction<Row, PartitionCommitInfo>
             } catch (Exception e) {
                 throw new IOException(e);
             }
+        }
+    }
+
+    private static class PartitionFilterBulkWriter implements BulkWriter<Row> {
+
+        private final BulkWriter<Row> bulkWriter;
+
+        private final PartitionComputer<Row> partitionComputer;
+
+        private PartitionFilterBulkWriter(BulkWriter<Row> bulkWriter, PartitionComputer<Row> partitionComputer) {
+            this.bulkWriter = checkNotNull(bulkWriter);
+            this.partitionComputer = checkNotNull(partitionComputer);
+        }
+
+        @Override
+        public void addElement(Row row) throws IOException {
+            bulkWriter.addElement(partitionComputer.projectColumnsToWrite(row));
+        }
+
+        @Override
+        public void flush() throws IOException {
+            bulkWriter.flush();
+        }
+
+        @Override
+        public void finish() throws IOException {
+            bulkWriter.finish();
         }
     }
 
@@ -236,33 +261,6 @@ public class HiveWriter extends ProcessFunction<Row, PartitionCommitInfo>
                     partFileWriterFactory, rollingPolicy);
             newPartitions.add(newBucket.getBucketId());
             return newBucket;
-        }
-    }
-
-    private static class PartitionFilterBulkWriter implements BulkWriter<Row> {
-
-        private final BulkWriter<Row> bulkWriter;
-
-        private final PartitionComputer<Row> partitionComputer;
-
-        private PartitionFilterBulkWriter(BulkWriter<Row> bulkWriter, PartitionComputer<Row> partitionComputer) {
-            this.bulkWriter = checkNotNull(bulkWriter);
-            this.partitionComputer = checkNotNull(partitionComputer);
-        }
-
-        @Override
-        public void addElement(Row row) throws IOException {
-            bulkWriter.addElement(partitionComputer.projectColumnsToWrite(row));
-        }
-
-        @Override
-        public void flush() throws IOException {
-            bulkWriter.flush();
-        }
-
-        @Override
-        public void finish() throws IOException {
-            bulkWriter.finish();
         }
     }
 }

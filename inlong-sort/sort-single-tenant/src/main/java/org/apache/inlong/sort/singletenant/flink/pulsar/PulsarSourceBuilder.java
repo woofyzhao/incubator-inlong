@@ -43,14 +43,14 @@ public class PulsarSourceBuilder {
         Map<String, String> configMap = config.toMap();
         if (properties != null && !properties.isEmpty()) {
             for (Map.Entry<String, Object> entry : properties.entrySet()) {
-                log.debug("==> pulsar source property entry {} = {}", entry.getKey(), entry.getValue());
+                log.info("==> pulsar source property entry {} = {}", entry.getKey(), entry.getValue());
                 configMap.put(entry.getKey(), entry.getValue().toString());
             }
         }
 
         org.apache.flink.configuration.Configuration flinkConfig =
                 org.apache.flink.configuration.Configuration.fromMap(configMap);
-        log.debug("flink.configuration = {}", flinkConfig);
+        log.info("==> flink.configuration = {}", flinkConfig);
 
         return new PulsarSourceFunction<>(
                 sourceInfo.getAdminUrl(),
