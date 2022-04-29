@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.service.sort.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.inlong.manager.common.enums.ErrorCodeEnum;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class SinkInfoUtils {
 
     private static final String DATA_FORMAT = "yyyyMMddHH";
@@ -182,14 +184,18 @@ public class SinkInfoUtils {
             }).collect(Collectors.toList());
         }
 
-        // dataPath = dataPath + / + tableName
-        StringBuilder dataPathBuilder = new StringBuilder();
-        String dataPath = hiveInfo.getDataPath();
-        if (!dataPath.endsWith("/")) {
-            dataPathBuilder.append(dataPath).append("/");
-        }
-        dataPath = dataPathBuilder.append(hiveInfo.getTableName()).toString();
+        log.debug("==> hive info = {}", hiveInfo);
 
+        // dataPath = dataPath + / + dbName.db + / + tableName
+        String dataPath = hiveInfo.getDataPath();
+        log.debug("==> data path = {}", dataPath);
+        StringBuilder dataPathBuilder = new StringBuilder(dataPath);
+        if (!dataPath.endsWith("/")) {
+            dataPathBuilder.append("/");
+        }
+        dataPath = dataPathBuilder.append(hiveInfo.getDbName()).append(".db/").append(hiveInfo.getTableName())
+                .toString();
+        log.debug("==> data path = {}", dataPath);
         return new HiveSinkInfo(sinkFields.toArray(new FieldInfo[0]), hiveInfo.getJdbcUrl(),
                 hiveInfo.getDbName(), hiveInfo.getTableName(), hiveInfo.getUsername(), hiveInfo.getPassword(),
                 dataPath, partitionList.toArray(new HiveSinkInfo.HivePartitionInfo[0]), fileFormat);
