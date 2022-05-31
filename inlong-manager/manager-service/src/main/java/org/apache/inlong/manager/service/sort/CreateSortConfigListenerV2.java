@@ -158,6 +158,7 @@ public class CreateSortConfigListenerV2 implements SortOperateListener {
                 pulsarSource.setSerializationType(DataTypeEnum.CSV.getName());
             }
             pulsarSource.setScanStartupMode(PulsarScanStartupMode.EARLIEST.getValue());
+            pulsarSource.setScanStartupMode("earliest");
             pulsarSource.setFieldList(streamInfo.getFieldList());
             sourceMap.computeIfAbsent(streamInfo.getInlongStreamId(), key -> Lists.newArrayList())
                     .add(pulsarSource);
