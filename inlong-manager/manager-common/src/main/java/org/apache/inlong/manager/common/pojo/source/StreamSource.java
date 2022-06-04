@@ -43,6 +43,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = Id.NAME, visible = true, property = "sourceType")
 @ApiModel("Stream source info")
+@JsonTypeInfo(use = Id.NAME, visible = true, property = "sourceType")
 public abstract class StreamSource extends StreamNode {
 
     @ApiModelProperty("Source id")

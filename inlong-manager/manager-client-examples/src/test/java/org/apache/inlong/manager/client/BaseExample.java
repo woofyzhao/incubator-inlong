@@ -47,21 +47,21 @@ public class BaseExample {
     // Inlong user && passwd
     private DefaultAuthentication inlongAuth = new DefaultAuthentication("admin", "inlong");
     // Inlong group ID
-    private String groupId = "{group.id}";
+    private String groupId = "tg_0602_007";
     // Inlong stream ID
-    private String streamId = "{stream.id}";
+    private String streamId = "ts_0602_007";
     // Flink cluster url
-    private String flinkUrl = "{flink.cluster.url}";
+    private String flinkUrl = "";
     // Pulsar cluster admin url
-    private String pulsarAdminUrl = "{pulsar.admin.url}";
+    private String pulsarAdminUrl = "http://127.0.0.1:18080";
     // Pulsar cluster service url
-    private String pulsarServiceUrl = "{pulsar.service.url}";
+    private String pulsarServiceUrl = "pulsar://127.0.0.1:6650";
     // Pulsar tenant
-    private String tenant = "{pulsar.tenant}";
+    private String tenant = "public";
     // Pulsar tenant
-    private String namespace = "{pulsar.namespace}";
+    private String namespace = "tg_0602_007";
     // Pulsar topic
-    private String topic = "{pulsar.topic}";
+    private String topic = "ts_0602_007";
 
     /**
      * Create inlong group info
@@ -69,6 +69,7 @@ public class BaseExample {
     public InlongGroupInfo createGroupInfo() {
         InlongPulsarInfo pulsarInfo = new InlongPulsarInfo();
         pulsarInfo.setInlongGroupId(groupId);
+        pulsarInfo.setInCharges("admin");
 
         // pulsar conf
         pulsarInfo.setServiceUrl(pulsarServiceUrl);
@@ -79,7 +80,7 @@ public class BaseExample {
         // set enable zk, create resource, lightweight mode, and cluster tag
         pulsarInfo.setEnableZookeeper(0);
         pulsarInfo.setEnableCreateResource(1);
-        pulsarInfo.setLightweight(1);
+        pulsarInfo.setLightweight(0);
         pulsarInfo.setInlongClusterTag("default_cluster");
 
         pulsarInfo.setDailyRecords(10000000);
@@ -103,6 +104,7 @@ public class BaseExample {
     public InlongStreamInfo createStreamInfo() {
         InlongStreamInfo streamInfo = new InlongStreamInfo();
         streamInfo.setName(this.getStreamId());
+        streamInfo.setInlongStreamId(this.getStreamId());
         streamInfo.setDataEncoding(StandardCharsets.UTF_8.toString());
         streamInfo.setDataSeparator(DataSeparator.VERTICAL_BAR.getSeparator());
         // if you need strictly order for data, set to 1
@@ -116,22 +118,33 @@ public class BaseExample {
      */
     public HiveSink createHiveSink() {
         HiveSink hiveSink = new HiveSink();
-        hiveSink.setDbName("{db.name}");
-        hiveSink.setJdbcUrl("jdbc:hive2://{ip:port}");
-        hiveSink.setAuthentication(new DefaultAuthentication("hive", "hive"));
+        String dbName = "db_" + groupId;
+        hiveSink.setDbName(dbName);
+        hiveSink.setJdbcUrl("jdbc:hive2://127.0.0.1:10000");
+        hiveSink.setAuthentication(new DefaultAuthentication("zhaozixuan", "hive"));
         hiveSink.setDataEncoding(StandardCharsets.UTF_8.toString());
         hiveSink.setFileFormat(FileFormat.TextFile.name());
-        hiveSink.setDataSeparator(DataSeparator.VERTICAL_BAR.getSeparator());
-        hiveSink.setDataPath("hdfs://{ip:port}/usr/hive/warehouse/{db.name}");
+        hiveSink.setDataSeparator(DataSeparator.VERTICAL_BAR.getAsciiCode().toString());
+        hiveSink.setDataPath("hdfs://127.0.0.1:9000/usr/hive/warehouse/" + dbName);
+        hiveSink.setHiveConfDir("/Users/zhaozixuan/Tencent/software/hive/conf");
+        hiveSink.setUsername("zhaozixuan");
+        hiveSink.setPassword("hive");
 
         List<SinkField> fields = new ArrayList<>();
         SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
         SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(), "name");
+
+        //AUTO_INCREMENT primary key
+        field1.setId(null);
+        field2.setId(null);
+
         fields.add(field1);
         fields.add(field2);
         hiveSink.setFieldList(fields);
-        hiveSink.setTableName("{table.name}");
-        hiveSink.setSinkName("{hive.sink.name}");
+        hiveSink.setTableName("tbl_" + groupId);
+        hiveSink.setSinkName("sink_" + groupId);
+
+        hiveSink.setProperties(new HashMap<>());
         return hiveSink;
     }
 

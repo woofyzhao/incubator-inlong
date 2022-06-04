@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  */
 public class LoadNodeUtils {
 
-    private static final String DEFAULT_HIVE_VERSION = "2.3.9";
+    private static final String DEFAULT_HIVE_VERSION = "3.1.2";
 
     /**
      * Create nodes of data load.
