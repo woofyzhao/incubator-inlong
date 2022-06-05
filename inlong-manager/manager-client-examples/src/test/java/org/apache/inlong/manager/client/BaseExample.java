@@ -47,9 +47,9 @@ public class BaseExample {
     // Inlong user && passwd
     private DefaultAuthentication inlongAuth = new DefaultAuthentication("admin", "inlong");
     // Inlong group ID
-    private String groupId = "tg_0602_007";
+    private String groupId = "tg_0605_004";
     // Inlong stream ID
-    private String streamId = "ts_0602_007";
+    private String streamId = "ts_0605_004";
     // Flink cluster url
     private String flinkUrl = "";
     // Pulsar cluster admin url
@@ -59,9 +59,9 @@ public class BaseExample {
     // Pulsar tenant
     private String tenant = "public";
     // Pulsar tenant
-    private String namespace = "tg_0602_007";
+    private String namespace = "tg_0605_004";
     // Pulsar topic
-    private String topic = "ts_0602_007";
+    private String topic = "ts_0605_004";
 
     /**
      * Create inlong group info
