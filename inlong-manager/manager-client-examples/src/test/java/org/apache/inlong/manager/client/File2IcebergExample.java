@@ -130,12 +130,6 @@ public class File2IcebergExample extends BaseExample {
         final SinkField field4 = new SinkField(3, FieldType.TIMESTAMP.toString(), "ts", FieldType.TIMESTAMP.toString(),
                 "ts");
 
-        //AUTO_INCREMENT primary key
-        field1.setId(null);
-        field2.setId(null);
-        field3.setId(null);
-        field4.setId(null);
-
         // field ext param
         // field1: bucket partition example
         IcebergColumnInfo info1 = new IcebergColumnInfo();

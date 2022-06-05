@@ -127,12 +127,6 @@ public class File2HBaseExample extends BaseExample {
         final SinkField field3 = new SinkField(2, FieldType.DECIMAL.toString(), "score", FieldType.DECIMAL.toString(),
                 "score");
 
-        //AUTO_INCREMENT primary key
-        field1.setId(null);
-        field2.setId(null);
-        field2.setId(null);
-        field3.setId(null);
-
         // field ext param
         HBaseColumnFamilyInfo info1 = new HBaseColumnFamilyInfo();
         info1.setCfName("cf_1");
