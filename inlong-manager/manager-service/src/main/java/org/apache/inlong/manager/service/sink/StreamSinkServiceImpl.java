@@ -217,7 +217,6 @@ public class StreamSinkServiceImpl implements StreamSinkService {
 //        if (EntityStatus.GROUP_CONFIG_SUCCESSFUL.getCode().equals(groupEntity.getStatus())) {
 //            executorService.execute(new WorkflowStartRunnable(operator, groupEntity, streamId));
 //        }
-        //new InlongStreamProcessOperation().startProcess(groupId, streamId, operator, false);
         LOGGER.info("success to update sink info: {}", request);
         return true;
     }

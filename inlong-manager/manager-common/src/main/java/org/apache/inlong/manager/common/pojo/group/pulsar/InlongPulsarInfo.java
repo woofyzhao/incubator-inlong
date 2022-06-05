@@ -52,19 +52,19 @@ public class InlongPulsarInfo extends InlongGroupInfo {
 
     @ApiModelProperty(value = "Queue model, parallel: multiple partitions, high throughput, out-of-order messages;"
             + "serial: single partition, low throughput, and orderly messages")
-    private String queueModule = "serial";
+    private String queueModule = "parallel";
 
     @ApiModelProperty("The number of partitions of Topic, 1-20")
-    private int partitionNum = 1;
+    private int partitionNum = 3;
 
     @ApiModelProperty(value = "Ledger's number of writable nodes")
-    private Integer ensemble = 1;
+    private Integer ensemble = 3;
 
     @ApiModelProperty(value = "Ledger's number of copies")
-    private Integer writeQuorum = 1;
+    private Integer writeQuorum = 3;
 
     @ApiModelProperty(value = "Number of responses requested")
-    private Integer ackQuorum = 1;
+    private Integer ackQuorum = 2;
 
     @ApiModelProperty(value = "Message time-to-live duration")
     private Integer ttl = 24;

@@ -69,13 +69,10 @@ public class InlongGroupImpl implements InlongGroup {
             this.managerClient = new InnerInlongManagerClient(inlongClient.getConfiguration());
         }
 
-        System.out.println("groupInfo = " + groupInfo);
         InlongGroupInfo newGroupInfo = managerClient.getGroupIfExists(groupInfo.getInlongGroupId());
         if (newGroupInfo != null) {
-            System.out.println("group already exists!");
             this.groupContext.setGroupInfo(groupInfo);
         } else {
-            System.out.println("group not exists, creating new group");
             String groupId = managerClient.createGroup(groupInfo.genRequest());
             groupInfo.setInlongGroupId(groupId);
         }

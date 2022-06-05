@@ -60,7 +60,6 @@ public class File2HiveExample extends BaseExample {
             streamBuilder.initOrUpdate();
             // start group
             InlongGroupContext inlongGroupContext = group.init();
-            System.out.println("group init ok");
             Assert.notNull(inlongGroupContext);
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,8 +87,8 @@ public class File2HiveExample extends BaseExample {
 
     private FileSource createAgentFileSource() {
         FileSource fileSource = new FileSource();
-        fileSource.setSourceName("source_" + getGroupId());
-        fileSource.setAgentIp("127.0.0.1");
+        fileSource.setSourceName("{source.name}");
+        fileSource.setAgentIp("{agent.ip}");
         fileSource.setPattern("/a/b/*.txt");
         fileSource.setTimeOffset("-1h");
         return fileSource;

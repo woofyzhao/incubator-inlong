@@ -47,21 +47,21 @@ public class BaseExample {
     // Inlong user && passwd
     private DefaultAuthentication inlongAuth = new DefaultAuthentication("admin", "inlong");
     // Inlong group ID
-    private String groupId = "tg_0605_004";
+    private String groupId = "{group.id}";
     // Inlong stream ID
-    private String streamId = "ts_0605_004";
+    private String streamId = "{stream.id}";
     // Flink cluster url
-    private String flinkUrl = "";
+    private String flinkUrl = "{flink.cluster.url}";
     // Pulsar cluster admin url
-    private String pulsarAdminUrl = "http://127.0.0.1:18080";
+    private String pulsarAdminUrl = "{pulsar.admin.url}";
     // Pulsar cluster service url
-    private String pulsarServiceUrl = "pulsar://127.0.0.1:6650";
+    private String pulsarServiceUrl = "{pulsar.service.url}";
     // Pulsar tenant
-    private String tenant = "public";
+    private String tenant = "{pulsar.tenant}";
     // Pulsar tenant
-    private String namespace = "tg_0605_004";
+    private String namespace = "{pulsar.namespace}";
     // Pulsar topic
-    private String topic = "ts_0605_004";
+    private String topic = "{pulsar.topic}";
 
     /**
      * Create inlong group info
@@ -118,33 +118,23 @@ public class BaseExample {
      */
     public HiveSink createHiveSink() {
         HiveSink hiveSink = new HiveSink();
-        String dbName = "db_" + groupId;
-        hiveSink.setDbName(dbName);
-        hiveSink.setJdbcUrl("jdbc:hive2://127.0.0.1:10000");
-        hiveSink.setAuthentication(new DefaultAuthentication("zhaozixuan", "hive"));
+        hiveSink.setDbName("{db.name}");
+        hiveSink.setJdbcUrl("jdbc:hive2://{ip:port}");
+        hiveSink.setAuthentication(new DefaultAuthentication("hive", "hive"));
         hiveSink.setDataEncoding(StandardCharsets.UTF_8.toString());
         hiveSink.setFileFormat(FileFormat.TextFile.name());
-        hiveSink.setDataSeparator(DataSeparator.VERTICAL_BAR.getAsciiCode().toString());
-        hiveSink.setDataPath("hdfs://127.0.0.1:9000/usr/hive/warehouse/" + dbName);
-        hiveSink.setHiveConfDir("/Users/zhaozixuan/Tencent/software/hive/conf");
-        hiveSink.setUsername("zhaozixuan");
-        hiveSink.setPassword("hive");
+        hiveSink.setDataSeparator(DataSeparator.VERTICAL_BAR.getSeparator());
+        hiveSink.setDataPath("hdfs://{ip:port}/usr/hive/warehouse/{db.name}");
+        hiveSink.setHiveConfDir("{hive.conf.dir}");
 
         List<SinkField> fields = new ArrayList<>();
         SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
         SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(), "name");
-
-        //AUTO_INCREMENT primary key
-        field1.setId(null);
-        field2.setId(null);
-
         fields.add(field1);
         fields.add(field2);
         hiveSink.setFieldList(fields);
-        hiveSink.setTableName("tbl_" + groupId);
-        hiveSink.setSinkName("sink_" + groupId);
-
-        hiveSink.setProperties(new HashMap<>());
+        hiveSink.setTableName("{table.name}");
+        hiveSink.setSinkName("{hive.sink.name}");
         return hiveSink;
     }
 

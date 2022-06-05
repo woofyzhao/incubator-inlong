@@ -67,7 +67,6 @@ public class File2IcebergExample extends BaseExample {
             streamBuilder.initOrUpdate();
             // start group
             InlongGroupContext inlongGroupContext = group.init();
-            System.out.println("group init ok");
             Assert.notNull(inlongGroupContext);
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,8 +94,8 @@ public class File2IcebergExample extends BaseExample {
 
     private FileSource createAgentFileSource() {
         FileSource fileSource = new FileSource();
-        fileSource.setSourceName("source_" + getGroupId());
-        fileSource.setAgentIp("127.0.0.1");
+        fileSource.setSourceName("{source.name}");
+        fileSource.setAgentIp("{agent.ip}");
         fileSource.setPattern("/a/b/*.txt");
         fileSource.setTimeOffset("-1h");
         return fileSource;
@@ -108,7 +107,6 @@ public class File2IcebergExample extends BaseExample {
         streamFieldList.add(new StreamField(1, FieldType.INT.toString(), "age", null, null));
         streamFieldList.add(new StreamField(2, FieldType.DECIMAL.toString(), "score", null, null));
         streamFieldList.add(new StreamField(3, FieldType.TIMESTAMP.toString(), "ts", null, null));
-
         return streamFieldList;
     }
 
@@ -118,11 +116,11 @@ public class File2IcebergExample extends BaseExample {
     public IcebergSink createIcebergSink() throws Exception {
         IcebergSink sink = new IcebergSink();
 
-        sink.setSinkName("sink_" + this.getGroupId());
-        sink.setDbName("db_" + this.getGroupId());
-        sink.setTableName("tbl_" + this.getGroupId());
-        sink.setCatalogUri("thrift://127.0.0.1:9083");
-        sink.setWarehouse("hdfs://127.0.0.1:9000/usr/iceberg/warehouse/");
+        sink.setSinkName("{sink.name}");
+        sink.setDbName("{db.name}");
+        sink.setTableName("{table.name}");
+        sink.setCatalogUri("thrift://{ip:port}");
+        sink.setWarehouse("hdfs://{ip:port}/user/iceberg/warehouse/");
 
         final SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
         final SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(),

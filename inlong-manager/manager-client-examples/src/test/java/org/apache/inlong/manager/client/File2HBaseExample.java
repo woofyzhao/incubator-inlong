@@ -66,7 +66,6 @@ public class File2HBaseExample extends BaseExample {
             streamBuilder.initOrUpdate();
             // start group
             InlongGroupContext inlongGroupContext = group.init();
-            System.out.println("group init ok");
             Assert.notNull(inlongGroupContext);
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,8 +93,8 @@ public class File2HBaseExample extends BaseExample {
 
     private FileSource createAgentFileSource() {
         FileSource fileSource = new FileSource();
-        fileSource.setSourceName("source_" + getGroupId());
-        fileSource.setAgentIp("127.0.0.1");
+        fileSource.setSourceName("{source.name}");
+        fileSource.setAgentIp("{agent.ip}");
         fileSource.setPattern("/a/b/*.txt");
         fileSource.setTimeOffset("-1h");
         return fileSource;
@@ -106,8 +105,6 @@ public class File2HBaseExample extends BaseExample {
         streamFieldList.add(new StreamField(0, FieldType.STRING.toString(), "name", null, null));
         streamFieldList.add(new StreamField(1, FieldType.INT.toString(), "age", null, null));
         streamFieldList.add(new StreamField(2, FieldType.DECIMAL.toString(), "score", null, null));
-        streamFieldList.add(new StreamField(3, FieldType.TIMESTAMP.toString(), "ts", null, null));
-
         return streamFieldList;
     }
 
@@ -117,13 +114,12 @@ public class File2HBaseExample extends BaseExample {
     public HBaseSink createHBaseSink() throws Exception {
         HBaseSink sink = new HBaseSink();
 
-        sink.setSinkName("sink_" + this.getGroupId());
-        sink.setNamespace("db_" + this.getGroupId());
-        sink.setTableName("tbl_" + this.getGroupId());
-        sink.setZkQuorum("127.0.0.1:2181");
-        sink.setZkNodeParent("/hbase");
-        sink.setRowKey("cf_1:name");
-        //sink.setFileFormat(FileFormat.TextFile.name());
+        sink.setSinkName("{sink.name}");
+        sink.setNamespace("{db.name}");
+        sink.setTableName("{table.name}");
+        sink.setZkQuorum("{ip:port}");
+        sink.setZkNodeParent("{zk.node.path}");
+        sink.setRowKey("{rowkey}");
 
         final SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
         final SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(),

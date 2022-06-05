@@ -144,7 +144,6 @@ public class IcebergCatalogUtils {
         HiveCatalog catalog = getCatalog(metastoreUri);
         Table table = catalog.loadTable(TableIdentifier.of(dbName, tableName));
         Schema schema = table.schema();
-        LOGGER.info("table {} scheme = {}", table.name(), table.schema());
         for (NestedField column : schema.columns()) {
             IcebergColumnInfo info = new IcebergColumnInfo();
             info.setName(column.name());
