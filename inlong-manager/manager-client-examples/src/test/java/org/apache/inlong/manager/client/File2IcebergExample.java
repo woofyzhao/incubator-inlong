@@ -95,7 +95,7 @@ public class File2IcebergExample extends BaseExample {
         fileSource.setSourceName("source_" + getGroupId());
         fileSource.setAgentIp("127.0.0.1");
         fileSource.setIp("127.0.0.1");
-        fileSource.setPattern("/Users/zhaozixuan/Tencent/inlong/testdata/*.txt");
+        fileSource.setPattern("/Users/zhaozixuan/Tencent/inlong/testdata/xxx.txt");
         fileSource.setTimeOffset("-1h");
         return fileSource;
     }
