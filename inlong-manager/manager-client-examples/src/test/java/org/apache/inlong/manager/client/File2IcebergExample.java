@@ -92,9 +92,10 @@ public class File2IcebergExample extends BaseExample {
 
     private FileSource createAgentFileSource() {
         FileSource fileSource = new FileSource();
-        fileSource.setSourceName("{source.name}");
-        fileSource.setAgentIp("{agent.ip}");
-        fileSource.setPattern("/a/b/*.txt");
+        fileSource.setSourceName("source_" + getGroupId());
+        fileSource.setAgentIp("127.0.0.1");
+        fileSource.setIp("127.0.0.1");
+        fileSource.setPattern("/Users/zhaozixuan/Tencent/inlong/testdata/*.txt");
         fileSource.setTimeOffset("-1h");
         return fileSource;
     }
@@ -114,11 +115,11 @@ public class File2IcebergExample extends BaseExample {
     public IcebergSink createIcebergSink() throws Exception {
         IcebergSink sink = new IcebergSink();
 
-        sink.setSinkName("{sink.name}");
-        sink.setDbName("{db.name}");
-        sink.setTableName("{table.name}");
-        sink.setCatalogUri("thrift://{ip:port}");
-        sink.setWarehouse("hdfs://{ip:port}/user/iceberg/warehouse/");
+        sink.setSinkName("sink_" + getGroupId());
+        sink.setDbName("db_" + getGroupId());
+        sink.setTableName("table_" + getGroupId());
+        sink.setCatalogUri("thrift://127.0.0.1:9083");
+        sink.setWarehouse("hdfs://127.0.0.1:9000/user/iceberg/warehouse/");
 
         final SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
         final SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(),
@@ -150,7 +151,7 @@ public class File2IcebergExample extends BaseExample {
         List<SinkField> fields = new ArrayList<>();
         fields.add(field1);
         fields.add(field2);
-        fields.add(field3);
+        //fields.add(field3);
         fields.add(field4);
         sink.setSinkFieldList(fields);
         return sink;

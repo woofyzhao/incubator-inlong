@@ -50,21 +50,21 @@ public class BaseExample {
     // Inlong user && passwd
     private DefaultAuthentication inlongAuth = new DefaultAuthentication("admin", "inlong");
     // Inlong group ID
-    private String groupId = "{group.id}";
+    private String groupId = "g_0613_105";
     // Inlong stream ID
-    private String streamId = "{stream.id}";
+    private String streamId = "s_0613_105";
     // Flink cluster url
-    private String flinkUrl = "{flink.cluster.url}";
+    private String flinkUrl = "";
     // Pulsar cluster admin url
-    private String pulsarAdminUrl = "{pulsar.admin.url}";
+    private String pulsarAdminUrl = "http://127.0.0.1:18080";
     // Pulsar cluster service url
-    private String pulsarServiceUrl = "{pulsar.service.url}";
+    private String pulsarServiceUrl = "pulsar://127.0.0.1:6650";
     // Pulsar tenant
-    private String tenant = "{pulsar.tenant}";
-    // Pulsar tenant
-    private String namespace = "{pulsar.namespace}";
+    private String tenant = "public";
+    // Pulsar namespace
+    private String namespace = "g_0613_105";
     // Pulsar topic
-    private String topic = "{pulsar.topic}";
+    private String topic = "s_0613_105";
 
     /**
      * Create inlong group info
@@ -84,7 +84,7 @@ public class BaseExample {
         pulsarInfo.setEnableZookeeper(0);
         pulsarInfo.setEnableCreateResource(1);
         pulsarInfo.setLightweight(0);
-        pulsarInfo.setInlongClusterTag("default_cluster");
+        pulsarInfo.setInlongClusterTag("default_set_name");
 
         pulsarInfo.setDailyRecords(10000000);
         pulsarInfo.setDailyStorage(10000);
