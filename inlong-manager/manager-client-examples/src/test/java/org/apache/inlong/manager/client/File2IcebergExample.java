@@ -102,10 +102,10 @@ public class File2IcebergExample extends BaseExample {
 
     private List<StreamField> createStreamFields() {
         List<StreamField> streamFieldList = Lists.newArrayList();
-        streamFieldList.add(new StreamField(0, FieldType.STRING.toString(), "name", null, null));
-        streamFieldList.add(new StreamField(1, FieldType.INT.toString(), "age", null, null));
-        streamFieldList.add(new StreamField(2, FieldType.DECIMAL.toString(), "score", null, null));
-        streamFieldList.add(new StreamField(3, FieldType.TIMESTAMP.toString(), "ts", null, null));
+        streamFieldList.add(new StreamField(0, FieldType.STRING.toString(), "id", null, null));
+        streamFieldList.add(new StreamField(1, FieldType.STRING.toString(), "name", null, null));
+        //streamFieldList.add(new StreamField(2, FieldType.DECIMAL.toString(), "score", null, null));
+        //streamFieldList.add(new StreamField(3, FieldType.TIMESTAMP.toString(), "ts", null, null));
         return streamFieldList;
     }
 
@@ -121,13 +121,14 @@ public class File2IcebergExample extends BaseExample {
         sink.setCatalogUri("thrift://127.0.0.1:9083");
         sink.setWarehouse("hdfs://127.0.0.1:9000/user/iceberg/warehouse/");
 
-        final SinkField field1 = new SinkField(0, FieldType.INT.toString(), "age", FieldType.INT.toString(), "age");
+        final SinkField field1 = new SinkField(0, FieldType.STRING.toString(), "id", FieldType.STRING.toString(),
+                "id");
         final SinkField field2 = new SinkField(1, FieldType.STRING.toString(), "name", FieldType.STRING.toString(),
                 "name");
-        final SinkField field3 = new SinkField(3, FieldType.DECIMAL.toString(), "score", FieldType.DECIMAL.toString(),
-                "score");
-        final SinkField field4 = new SinkField(3, FieldType.TIMESTAMP.toString(), "ts", FieldType.TIMESTAMP.toString(),
-                "ts");
+        //final SinkField field3 = new SinkField(3, FieldType.DECIMAL.toString(), "score", FieldType.DECIMAL.toString(),
+        //        "score");
+        //final SinkField field4 = new SinkField(3, FieldType.TIMESTAMP.toString(), "ts", FieldType.TIMESTAMP.toString(),
+        //        "ts");
 
         // field ext param
         // field1: bucket partition example
@@ -137,22 +138,22 @@ public class File2IcebergExample extends BaseExample {
         info1.setBucketNum(10);
         field1.setExtParams(OBJECT_MAPPER.writeValueAsString(info1));
 
-        // field3: decimal column example
-        IcebergColumnInfo info3 = new IcebergColumnInfo();
-        info3.setScale(5);
-        info3.setPrecision(10);  //NOTE: scale must be less than or equal to precision
-        field3.setExtParams(OBJECT_MAPPER.writeValueAsString(info3));
-
-        // field4: hour parititon example
-        IcebergColumnInfo info4 = new IcebergColumnInfo();
-        info4.setPartitionStrategy(IcebergPartition.HOUR.toString());
-        field4.setExtParams(OBJECT_MAPPER.writeValueAsString(info4));
+        // // field3: decimal column example
+        // IcebergColumnInfo info3 = new IcebergColumnInfo();
+        // info3.setScale(5);
+        // info3.setPrecision(10);  //NOTE: scale must be less than or equal to precision
+        // field3.setExtParams(OBJECT_MAPPER.writeValueAsString(info3));
+        //
+        // // field4: hour parititon example
+        // IcebergColumnInfo info4 = new IcebergColumnInfo();
+        // info4.setPartitionStrategy(IcebergPartition.HOUR.toString());
+        // field4.setExtParams(OBJECT_MAPPER.writeValueAsString(info4));
 
         List<SinkField> fields = new ArrayList<>();
         fields.add(field1);
         fields.add(field2);
         //fields.add(field3);
-        fields.add(field4);
+        //fields.add(field4);
         sink.setSinkFieldList(fields);
         return sink;
     }
