@@ -18,6 +18,7 @@
 package org.apache.inlong.dataproxy.config;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
@@ -49,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Config manager class.
  */
+@Slf4j
 public class ConfigManager {
 
     public static final List<ConfigHolder> CONFIG_HOLDER_LIST = new ArrayList<>();
@@ -71,6 +73,7 @@ public class ConfigManager {
      * get instance for config manager
      */
     public static ConfigManager getInstance() {
+        log.info("===> create repository for {}" + ConfigManager.class.getSimpleName());
         if (isInit && instance != null) {
             return instance;
         }
@@ -273,7 +276,7 @@ public class ConfigManager {
             try {
                 String url = "http://" + host + ConfigConstants.MANAGER_PATH + ConfigConstants.MANAGER_GET_CONFIG_PATH
                         + "?clusterName=" + clusterName;
-                LOG.info("start to request {} to get config info", url);
+                LOG.info("===> start to request {} to get config info", url);
                 httpGet = new HttpGet(url);
                 httpGet.addHeader(HttpHeaders.CONNECTION, "close");
 
@@ -289,7 +292,7 @@ public class ConfigManager {
 
                 // get config success
                 if (configJson.isSuccess() && configJson.getData() != null) {
-                    LOG.info("getConfig result: {}", returnStr);
+                    LOG.info("===> getConfig result: {}", returnStr);
                     /*
                      * get mqUrls <->token maps;
                      * if mq is pulsar, store format: mq_cluster.index1=cluster1url1,cluster1url2=token
@@ -298,7 +301,7 @@ public class ConfigManager {
                     int index = 1;
                     List<MQClusterInfo> clusterSet = configJson.getData().getMqClusterList();
                     if (clusterSet == null || clusterSet.isEmpty()) {
-                        LOG.error("getConfig from manager: no available mq config");
+                        LOG.error("===> getConfig from manager: no available mq config");
                         return false;
                     }
                     for (MQClusterInfo mqCluster : clusterSet) {
@@ -328,7 +331,7 @@ public class ConfigManager {
                     configManager.getMqClusterHolder()
                             .setUrl2token(configManager.getMqClusterHolder().getUrl2token());
                 } else {
-                    LOG.error("getConfig from manager error: {}", configJson.getErrMsg());
+                    LOG.error("===> getConfig from manager error: {}", configJson.getErrMsg());
                 }
             } catch (Exception ex) {
                 LOG.error("exception caught", ex);

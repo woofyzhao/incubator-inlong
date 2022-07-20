@@ -85,6 +85,7 @@ public class TriggerManager extends AbstractDaemon {
             triggerMap.put(triggerId, trigger);
             trigger.init(triggerProfile);
             trigger.run();
+            LOGGER.info("===> job trigger added and running");
         } catch (Throwable ex) {
             LOGGER.error("exception caught", ex);
             ThreadUtils.threadThrowableHandler(Thread.currentThread(), ex);
@@ -121,7 +122,7 @@ public class TriggerManager extends AbstractDaemon {
     public void preprocessTrigger(TriggerProfile profile) {
         String syncType = profile.get(JobConstants.JOB_FILE_COLLECT_TYPE, "");
         if (FileCollectType.FULL.equals(syncType)) {
-            LOGGER.info("Initialize submit full path. trigger {} ", profile.getTriggerId());
+            LOGGER.info("===> Initialize submit full path. trigger {} ", profile.getTriggerId());
             manager.getJobManager().submitFileJobProfile(profile);
         }
     }
@@ -137,6 +138,7 @@ public class TriggerManager extends AbstractDaemon {
                             if (triggerProfile.getBoolean(TRIGGER_ONLY_ONE_JOB, false)) {
                                 deleteRelatedJobs(triggerProfile.getTriggerId());
                             }
+                            LOGGER.info("===> submitFileJobProfile from triggerMap");
                             manager.getJobManager().submitFileJobProfile(profile);
                             addToTriggerMap(profile.get(JOB_ID), profile);
                         }

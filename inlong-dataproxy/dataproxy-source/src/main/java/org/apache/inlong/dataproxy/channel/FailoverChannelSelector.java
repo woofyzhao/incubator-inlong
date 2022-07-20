@@ -17,11 +17,6 @@
 
 package org.apache.inlong.dataproxy.channel;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
@@ -34,6 +29,11 @@ import org.apache.inlong.dataproxy.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 public class FailoverChannelSelector extends AbstractChannelSelector {
 
     private static final Logger LOG = LoggerFactory.getLogger(FailoverChannelSelector.class);
@@ -44,16 +44,14 @@ public class FailoverChannelSelector extends AbstractChannelSelector {
     private static final String FILE_METRIC_CHANNEL = "fileMetric";
     private static final String SLA_METRIC_CHANNEL = "slaMetric";
     private static final String ORDER_CHANNEL = "order";
-
-    private int masterIndex = 0;
-    private int slaveIndex = 0;
-
     private final List<Channel> masterChannels = new ArrayList<Channel>();
     private final List<Channel> orderChannels = new ArrayList<Channel>();
     private final List<Channel> slaveChannels = new ArrayList<Channel>();
     private final List<Channel> transferChannels = new ArrayList<Channel>();
     private final List<Channel> agentFileMetricChannels = new ArrayList<Channel>();
     private final List<Channel> slaMetricChannels = new ArrayList<Channel>();
+    private int masterIndex = 0;
+    private int slaveIndex = 0;
 
     @Override
     public List<Channel> getRequiredChannels(Event event) {
@@ -113,6 +111,7 @@ public class FailoverChannelSelector extends AbstractChannelSelector {
 
     @Override
     public void configure(Context context) {
+        LOG.info("===> FailoverChannelSelector.configure");
 //        LOG.info(context.toString());
         String masters = context.getString(MASTER_CHANNEL);
         String transfer = context.getString(TRANSFER_CHANNEL);

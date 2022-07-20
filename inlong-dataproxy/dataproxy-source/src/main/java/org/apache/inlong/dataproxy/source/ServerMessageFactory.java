@@ -23,15 +23,16 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import java.lang.reflect.Constructor;
-import java.util.concurrent.TimeUnit;
 import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.source.AbstractSource;
-import org.apache.inlong.dataproxy.consts.ConfigConstants;
 import org.apache.inlong.common.monitor.MonitorIndex;
 import org.apache.inlong.common.monitor.MonitorIndexExt;
+import org.apache.inlong.dataproxy.consts.ConfigConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Constructor;
+import java.util.concurrent.TimeUnit;
 
 public class ServerMessageFactory
         extends ChannelInitializer<SocketChannel> {
@@ -98,6 +99,7 @@ public class ServerMessageFactory
             String topic, String attr, Boolean filterEmptyMsg, Integer maxCons,
             Boolean isCompressed, MonitorIndex monitorIndex, MonitorIndexExt monitorIndexExt,
             String name) {
+        LOG.info("===> create ServerMessageFactory");
         this.source = source;
         this.processor = source.getChannelProcessor();
         this.allChannels = allChannels;
@@ -118,7 +120,7 @@ public class ServerMessageFactory
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-
+        LOG.info("===> ServerMessageFactory initChannel");
         if (this.protocolType
                 .equalsIgnoreCase(ConfigConstants.TCP_PROTOCOL)) {
             ch.pipeline().addLast("messageDecoder", new LengthFieldBasedFrameDecoder(
@@ -143,7 +145,7 @@ public class ServerMessageFactory
                 ChannelInboundHandlerAdapter messageHandler = (ChannelInboundHandlerAdapter) ctor
                         .newInstance(source, serviceDecoder, allChannels, topic, attr,
                                 filterEmptyMsg, maxConnections,
-                                isCompressed,  monitorIndex, monitorIndexExt, protocolType
+                                isCompressed, monitorIndex, monitorIndexExt, protocolType
                         );
 
                 ch.pipeline().addLast("messageHandler", messageHandler);

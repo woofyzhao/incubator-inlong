@@ -37,13 +37,14 @@ public class PulsarZoneWorker extends Thread {
 
     /**
      * Constructor
-     * 
+     *
      * @param sinkName
      * @param workerIndex
      * @param context
      */
     public PulsarZoneWorker(String sinkName, int workerIndex, PulsarZoneSinkContext context) {
         super();
+        LOG.info("===> create PulsarZoneWorker from {}", sinkName);
         this.workerName = sinkName + "-worker-" + workerIndex;
         this.context = context;
         this.zoneProducer = new PulsarZoneProducer(workerName, this.context);
@@ -61,7 +62,6 @@ public class PulsarZoneWorker extends Thread {
     }
 
     /**
-     * 
      * close
      */
     public void close() {
@@ -75,7 +75,7 @@ public class PulsarZoneWorker extends Thread {
      */
     @Override
     public void run() {
-        LOG.info(String.format("start PulsarZoneWorker:%s", this.workerName));
+        LOG.info(String.format("===> start /:%s", this.workerName));
         while (status != LifecycleState.STOP) {
             try {
                 DispatchProfile event = context.getDispatchQueue().poll();

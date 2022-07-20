@@ -17,24 +17,22 @@
 
 package org.apache.inlong.dataproxy.source.tcp;
 
-import org.apache.inlong.sdk.commons.protocol.SourceCallback;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import org.apache.inlong.sdk.commons.protocol.ProxySdk.MessagePackHeader;
 import org.apache.inlong.sdk.commons.protocol.ProxySdk.ResponseInfo;
 import org.apache.inlong.sdk.commons.protocol.ProxySdk.ResultCode;
+import org.apache.inlong.sdk.commons.protocol.SourceCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-
 /**
  * InlongTcpEventCallback
- * 
  */
 public class InlongTcpSourceCallback implements SourceCallback {
 
@@ -47,10 +45,12 @@ public class InlongTcpSourceCallback implements SourceCallback {
 
     /**
      * Constructor
+     *
      * @param ctx
      * @param header
      */
     public InlongTcpSourceCallback(ChannelHandlerContext ctx, MessagePackHeader header) {
+        LOG.info("create InlongTcpSourceCallback");
         this.ctx = ctx;
         this.header = header;
         this.latch = new CountDownLatch(1);
@@ -58,10 +58,12 @@ public class InlongTcpSourceCallback implements SourceCallback {
 
     /**
      * callback
+     *
      * @param resultCode
      */
     @Override
     public void callback(ResultCode resultCode) {
+        LOG.info("===> InlongTcpSourceCallback from {}", resultCode);
         // If DataProxy have sent timeout response to SDK, DataProxy do not send success response to SDK again when
         // event is success to save.
         if (this.hasResponsed.getAndSet(true)) {
@@ -82,7 +84,7 @@ public class InlongTcpSourceCallback implements SourceCallback {
                 remoteChannel.write(buffer);
             } else {
                 LOG.warn("the send buffer2 is full, so disconnect it!"
-                        + "please check remote client; Connection info:{}",
+                                + "please check remote client; Connection info:{}",
                         remoteChannel);
                 buffer.release();
             }
@@ -96,6 +98,7 @@ public class InlongTcpSourceCallback implements SourceCallback {
 
     /**
      * get hasResponsed
+     *
      * @return the hasResponsed
      */
     public AtomicBoolean getHasResponsed() {
@@ -104,6 +107,7 @@ public class InlongTcpSourceCallback implements SourceCallback {
 
     /**
      * get latch
+     *
      * @return the latch
      */
     public CountDownLatch getLatch() {

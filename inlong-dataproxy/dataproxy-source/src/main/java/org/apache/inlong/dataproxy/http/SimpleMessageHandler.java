@@ -76,6 +76,7 @@ public class SimpleMessageHandler implements MessageHandler {
         this.counterGroup = counterGroup;
         this.counterGroupExt = counterGroupExt;
         init();
+        LOG.info("create SimpleMessageHandler");
     }
 
     @Override

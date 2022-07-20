@@ -17,17 +17,16 @@
 
 package org.apache.inlong.dataproxy.node;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.flume.conf.FlumeConfiguration;
 import org.apache.flume.node.AbstractConfigurationProvider;
 import org.apache.inlong.dataproxy.config.RemoteConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * 
  * ManagerPropertiesConfigurationProvider
  */
 public class ManagerPropertiesConfigurationProvider extends
@@ -38,16 +37,17 @@ public class ManagerPropertiesConfigurationProvider extends
 
     /**
      * ManagerPropertiJesConfigurationProvider
-     * 
+     *
      * @param agentName
      */
     public ManagerPropertiesConfigurationProvider(String agentName) {
         super(agentName);
+        LOGGER.info("===> create ManagerPropertiesConfigurationProvider for {}", agentName);
     }
 
     /**
      * getFlumeConfiguration
-     * 
+     *
      * @return
      */
     @Override

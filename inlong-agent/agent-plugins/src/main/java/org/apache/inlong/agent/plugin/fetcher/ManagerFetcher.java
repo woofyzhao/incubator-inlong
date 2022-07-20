@@ -126,6 +126,7 @@ public class ManagerFetcher extends AbstractDaemon implements ProfileFetcher {
             baseManagerUrl = buildBaseUrl();
             managerVipUrl = buildVipUrl(baseManagerUrl);
             managerTaskUrl = buildFileCollectTaskUrl(baseManagerUrl);
+            LOGGER.info("===> managerTaskUrl = {}", managerTaskUrl);
             managerIpsCheckUrl = buildIpCheckUrl(baseManagerUrl);
             managerDbCollectorTaskUrl = buildDbCollectorGetTaskUrl(baseManagerUrl);
             localFileCache = getLocalFileCache();
@@ -234,8 +235,10 @@ public class ManagerFetcher extends AbstractDaemon implements ProfileFetcher {
         List<CommandEntity> unackedCommands = commandDb.getUnackedCommands();
         String resultStr = httpManager.doSentPost(managerTaskUrl, getFetchRequest(unackedCommands));
         JsonObject resultData = getResultData(resultStr);
+        LOGGER.info("===> get manager task result: {}", resultData);
         JsonElement element = resultData.get(AGENT_MANAGER_RETURN_PARAM_DATA);
         if (element != null) {
+            LOGGER.info("===> get manager task data: {}", element);
             dealWithFetchResult(GSON.fromJson(element.getAsJsonObject(), TaskResult.class));
         }
         ackCommands(unackedCommands);
@@ -284,8 +287,10 @@ public class ManagerFetcher extends AbstractDaemon implements ProfileFetcher {
             TriggerProfile profile = TriggerProfile.getTriggerProfiles(dataConfig);
             LOGGER.info("the triggerProfile: {}", profile.toJsonStr());
             if (profile.hasKey(JOB_TRIGGER)) {
+                LOGGER.info("===> dealWithTdmTriggerProfile");
                 dealWithTdmTriggerProfile(profile);
             } else {
+                LOGGER.info("===> dealWithJobProfile");
                 dealWithJobProfile(profile);
             }
         }
@@ -381,7 +386,7 @@ public class ManagerFetcher extends AbstractDaemon implements ProfileFetcher {
         Collection<File> suitFiles = PluginUtils.findSuitFiles(triggerProfile);
         // filter files exited before
         List<File> pendingFiles = suitFiles.stream().filter(file ->
-                !agentManager.getJobManager().checkJobExsit(file.getAbsolutePath()))
+                        !agentManager.getJobManager().checkJobExsit(file.getAbsolutePath()))
                 .collect(Collectors.toList());
         for (File pendingFile : pendingFiles) {
             JobProfile copiedProfile = copyJobProfile(triggerProfile, dataTime,

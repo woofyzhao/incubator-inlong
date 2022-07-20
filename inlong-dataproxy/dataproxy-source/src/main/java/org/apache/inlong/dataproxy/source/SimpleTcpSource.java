@@ -25,16 +25,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 import org.apache.flume.Context;
 import org.apache.flume.EventDrivenSource;
@@ -46,19 +36,26 @@ import org.apache.inlong.dataproxy.utils.EventLoopUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+
 /**
  * Simple tcp source
- *
  */
 public class SimpleTcpSource extends BaseSource
         implements Configurable, EventDrivenSource {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleTcpSource.class);
-
-    public static ArrayList<String> blacklist = new ArrayList<String>();
-
     private static final String blacklistFilePath = "blacklist.properties";
-
+    public static ArrayList<String> blacklist = new ArrayList<String>();
     private static int TRAFFIC_CLASS_TYPE_0 = 0;
 
     private static int TRAFFIC_CLASS_TYPE_96 = 96;
@@ -68,19 +65,12 @@ public class SimpleTcpSource extends BaseSource
     private static int DEFAULT_SLEEP_TIME_MS = 5 * 1000;
 
     private static long propsLastModified;
-
-    private CheckBlackListThread checkBlackListThread;
-
-    private boolean tcpNoDelay = true;
-
-    private boolean keepAlive = true;
-
-    private int highWaterMark;
-
-    private int trafficClass;
-
     protected String topic;
-
+    private CheckBlackListThread checkBlackListThread;
+    private boolean tcpNoDelay = true;
+    private boolean keepAlive = true;
+    private int highWaterMark;
+    private int trafficClass;
     private ServerBootstrap bootstrap;
 
     private DataProxyMetricItemSet metricItemSet;
@@ -92,6 +82,7 @@ public class SimpleTcpSource extends BaseSource
 
     /**
      * check black list
+     *
      * @param blacklist
      * @param allChannels
      */
@@ -147,41 +138,9 @@ public class SimpleTcpSource extends BaseSource
         return arrayList;
     }
 
-    private class CheckBlackListThread extends Thread {
-        private boolean shutdown = false;
-
-        public void shutdouwn() {
-            shutdown = true;
-        }
-
-        @Override
-        public void run() {
-            logger.info("CheckBlackListThread thread {} start.", Thread.currentThread().getName());
-            while (!shutdown) {
-                try {
-                    File blacklistFile = new File("conf/" + blacklistFilePath);
-                    if (blacklistFile.lastModified() > propsLastModified) {
-                        blacklist = load(blacklistFilePath);
-                        propsLastModified = blacklistFile.lastModified();
-                        SimpleDateFormat formator = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        logger.info("blacklist.properties:{}\n{}",
-                                formator.format(new Date(blacklistFile.lastModified())), blacklist);
-                    }
-                    Thread.sleep(DEFAULT_SLEEP_TIME_MS);
-                    checkBlackList(blacklist, allChannels);
-                } catch (InterruptedException e) {
-                    logger.info("ConfigReloader thread exit!");
-                    return;
-                } catch (Throwable t) {
-                    logger.error("ConfigReloader thread error!", t);
-                }
-            }
-        }
-    }
-
     @Override
     public synchronized void startSource() {
-        logger.info("start " + this.getName());
+        logger.info("===> start source " + this.getName());
         this.metricItemSet = new DataProxyMetricItemSet(this.getName());
         MetricRegister.register(metricItemSet);
         checkBlackListThread = new CheckBlackListThread();
@@ -238,7 +197,7 @@ public class SimpleTcpSource extends BaseSource
 
     @Override
     public void configure(Context context) {
-        logger.info("context is {}", context);
+        logger.info("===> configuring source, context is {}", context);
         super.configure(context);
         tcpNoDelay = context.getBoolean(ConfigConstants.TCP_NO_DELAY, true);
         keepAlive = context.getBoolean(ConfigConstants.KEEP_ALIVE, true);
@@ -272,6 +231,7 @@ public class SimpleTcpSource extends BaseSource
 
     /**
      * get metricItemSet
+     *
      * @return the metricItemSet
      */
     public DataProxyMetricItemSet getMetricItemSet() {
@@ -281,5 +241,38 @@ public class SimpleTcpSource extends BaseSource
     @Override
     public String getProtocolName() {
         return "tcp";
+    }
+
+    private class CheckBlackListThread extends Thread {
+
+        private boolean shutdown = false;
+
+        public void shutdouwn() {
+            shutdown = true;
+        }
+
+        @Override
+        public void run() {
+            logger.info("CheckBlackListThread thread {} start.", Thread.currentThread().getName());
+            while (!shutdown) {
+                try {
+                    File blacklistFile = new File("conf/" + blacklistFilePath);
+                    if (blacklistFile.lastModified() > propsLastModified) {
+                        blacklist = load(blacklistFilePath);
+                        propsLastModified = blacklistFile.lastModified();
+                        SimpleDateFormat formator = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        logger.info("blacklist.properties:{}\n{}",
+                                formator.format(new Date(blacklistFile.lastModified())), blacklist);
+                    }
+                    Thread.sleep(DEFAULT_SLEEP_TIME_MS);
+                    checkBlackList(blacklist, allChannels);
+                } catch (InterruptedException e) {
+                    logger.info("ConfigReloader thread exit!");
+                    return;
+                } catch (Throwable t) {
+                    logger.error("ConfigReloader thread error!", t);
+                }
+            }
+        }
     }
 }

@@ -19,10 +19,6 @@ package org.apache.inlong.dataproxy.channel;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.flume.Channel;
 import org.apache.flume.ChannelException;
 import org.apache.flume.ChannelSelector;
@@ -34,11 +30,16 @@ import org.apache.flume.channel.ChannelProcessor;
 import org.apache.flume.interceptor.Interceptor;
 import org.apache.flume.interceptor.InterceptorBuilderFactory;
 import org.apache.flume.interceptor.InterceptorChain;
-import org.apache.inlong.dataproxy.consts.ConfigConstants;
 import org.apache.inlong.common.monitor.LogCounter;
+import org.apache.inlong.dataproxy.consts.ConfigConstants;
 import org.apache.inlong.dataproxy.utils.MessageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FailoverChannelProcessor
         extends ChannelProcessor {
@@ -51,6 +52,7 @@ public class FailoverChannelProcessor
 
     public FailoverChannelProcessor(ChannelSelector selector) {
         super(selector);
+        LOG.info("create FailoverChannelProcessor for selector {}", selector.getName());
         this.selector = selector;
         this.interceptorChain = new InterceptorChain();
     }
@@ -131,6 +133,7 @@ public class FailoverChannelProcessor
      * @throws ChannelException when a write to a required channel fails.
      */
     public void processEventBatch(List<Event> events) {
+        LOG.info("===> processEventBatch");
         Preconditions.checkNotNull(events, "Event list must not be null");
         events = interceptorChain.intercept(events);
         Map<Channel, List<Event>> reqChannelQueue = new LinkedHashMap<Channel, List<Event>>();
@@ -235,6 +238,7 @@ public class FailoverChannelProcessor
      */
 
     public void processEvent(Event event) {
+        LOG.info("===> processEvent {}", event);
         event = interceptorChain.intercept(event);
         if (event == null) {
             return;

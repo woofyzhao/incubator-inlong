@@ -21,11 +21,11 @@ package org.apache.inlong.sdk.dataproxy.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
-import java.nio.charset.StandardCharsets;
-
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class ProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
@@ -99,6 +99,7 @@ public class ProtocolDecoder extends MessageToMessageDecoder<ByteBuf> {
 
             object.setMsgtype(msgType);
             out.add(object);
+            logger.info("===> decoded msg = {}", object);
 
         } else if (msgType == 8) {
             int attrlen = buffer.getShort(4 + 1 + 4 + 1 + 4 + 2);

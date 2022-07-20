@@ -50,6 +50,7 @@ public class ProtocolEncoder extends MessageToMessageEncoder<EncodeObject> {
     protected void encode(ChannelHandlerContext ctx,
             EncodeObject message, List<Object> out) throws Exception {
         ByteBuf buf = null;
+        logger.info("===> netty encode msg, msgtype = {}", message.getMsgtype());
         try {
             EncodeObject object = message;
             if (object.getMsgtype() == 3) {

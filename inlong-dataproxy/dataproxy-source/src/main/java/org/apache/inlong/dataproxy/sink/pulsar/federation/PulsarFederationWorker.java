@@ -17,9 +17,6 @@
 
 package org.apache.inlong.dataproxy.sink.pulsar.federation;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flume.Event;
 import org.apache.flume.lifecycle.LifecycleState;
@@ -31,8 +28,10 @@ import org.apache.pulsar.shade.org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * 
  * PulsarSetWorker
  */
 public class PulsarFederationWorker extends Thread {
@@ -48,13 +47,14 @@ public class PulsarFederationWorker extends Thread {
 
     /**
      * Constructor
-     * 
+     *
      * @param sinkName
      * @param workerIndex
      * @param context
      */
     public PulsarFederationWorker(String sinkName, int workerIndex, PulsarFederationSinkContext context) {
         super();
+        LOG.info("===> create PulsarFederationWorker");
         this.workerName = sinkName + "-worker-" + workerIndex;
         this.context = context;
         this.producerFederation = new PulsarProducerFederation(workerName, this.context);
@@ -75,7 +75,6 @@ public class PulsarFederationWorker extends Thread {
     }
 
     /**
-     * 
      * close
      */
     public void close() {
@@ -89,7 +88,7 @@ public class PulsarFederationWorker extends Thread {
      */
     @Override
     public void run() {
-        LOG.info(String.format("start PulsarSetWorker:%s", this.workerName));
+        LOG.info(String.format("===> start PulsarFederationWorker:%s", this.workerName));
         while (status != LifecycleState.STOP) {
             try {
                 Event currentRecord = context.getBufferQueue().pollRecord();
@@ -121,7 +120,7 @@ public class PulsarFederationWorker extends Thread {
 
     /**
      * fillTopic
-     * 
+     *
      * @param currentRecord
      */
     private void fillTopic(Event currentRecord) {

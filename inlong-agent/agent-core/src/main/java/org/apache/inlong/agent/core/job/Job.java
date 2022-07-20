@@ -86,7 +86,7 @@ public class Job {
         List<Task> taskList = new ArrayList<>();
         int index = 0;
         try {
-            LOGGER.info("job id: {}, source: {}, channel: {}, sink: {}",
+            LOGGER.info("===> job id: {}, source: {}, channel: {}, sink: {}",
                     getJobInstanceId(), jobConf.get(JobConstants.JOB_SOURCE_CLASS),
                     jobConf.get(JobConstants.JOB_CHANNEL),
                     jobConf.get(JobConstants.JOB_SINK));
@@ -97,6 +97,8 @@ public class Job {
                 Channel channel = (Channel) Class.forName(jobConf.get(JobConstants.JOB_CHANNEL)).newInstance();
                 String taskId = String.format("%s_%d", jobInstanceId, index++);
                 taskList.add(new Task(taskId, reader, writer, channel, getJobConf()));
+                LOGGER.info("===> task {} created: reader-{}, channel-{}, writer-{}", taskId, reader.getReadSource(),
+                        channel, writer);
             }
         } catch (Throwable ex) {
             LOGGER.error("create task failed", ex);

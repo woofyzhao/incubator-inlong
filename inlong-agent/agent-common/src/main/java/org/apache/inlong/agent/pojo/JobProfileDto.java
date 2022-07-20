@@ -19,6 +19,7 @@ package org.apache.inlong.agent.pojo;
 
 import com.google.gson.Gson;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.agent.conf.AgentConfiguration;
 import org.apache.inlong.agent.conf.TriggerProfile;
 import org.apache.inlong.common.enums.TaskTypeEnum;
@@ -30,6 +31,7 @@ import static org.apache.inlong.agent.constant.FetcherConstants.AGENT_MANAGER_VI
 import static org.apache.inlong.agent.constant.JobConstants.SYNC_SEND_OPEN;
 
 @Data
+@Slf4j
 public class JobProfileDto {
 
     public static final String DEFAULT_TRIGGER = "org.apache.inlong.agent.plugin.trigger.DirectoryTrigger";
@@ -203,6 +205,7 @@ public class JobProfileDto {
                 break;
             default:
         }
+        log.info("===> get profileDto = {}", GSON.toJson(profileDto));
         return TriggerProfile.parseJsonStr(GSON.toJson(profileDto));
     }
 

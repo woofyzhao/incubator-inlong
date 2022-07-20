@@ -17,14 +17,6 @@
 
 package org.apache.inlong.dataproxy.sink.pulsar.federation;
 
-import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -47,8 +39,15 @@ import org.apache.pulsar.client.api.SizeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 /**
- * 
  * PulsarProducerCluster
  */
 public class PulsarProducerCluster implements LifecycleAware {
@@ -91,12 +90,13 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * Constructor
-     * 
+     *
      * @param workerName
      * @param config
      * @param context
      */
     public PulsarProducerCluster(String workerName, CacheClusterConfig config, PulsarFederationSinkContext context) {
+        LOG.info("===> create PulsarProducerCluster");
         this.workerName = workerName;
         this.config = config;
         this.sinkContext = context;
@@ -110,6 +110,7 @@ public class PulsarProducerCluster implements LifecycleAware {
      */
     @Override
     public void start() {
+        LOG.info("start PulsarProducerCluster");
         this.state = LifecycleState.START;
         // create pulsar client
         try {
@@ -152,23 +153,23 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * getPulsarCompressionType
-     * 
+     *
      * @return CompressionType
      */
     private CompressionType getPulsarCompressionType() {
         String type = this.context.getString(KEY_COMPRESSIONTYPE);
         switch (type) {
-            case "LZ4" :
+            case "LZ4":
                 return CompressionType.LZ4;
-            case "NONE" :
+            case "NONE":
                 return CompressionType.NONE;
-            case "ZLIB" :
+            case "ZLIB":
                 return CompressionType.ZLIB;
-            case "ZSTD" :
+            case "ZSTD":
                 return CompressionType.ZSTD;
-            case "SNAPPY" :
+            case "SNAPPY":
                 return CompressionType.SNAPPY;
-            default :
+            default:
                 return CompressionType.NONE;
         }
     }
@@ -196,7 +197,7 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * getLifecycleState
-     * 
+     *
      * @return
      */
     @Override
@@ -206,7 +207,7 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * send
-     * 
+     *
      * @param event
      */
     public boolean send(Event event) {
@@ -269,7 +270,7 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * addMetric
-     * 
+     *
      * @param event
      * @param topic
      * @param result
@@ -306,7 +307,7 @@ public class PulsarProducerCluster implements LifecycleAware {
 
     /**
      * get cacheClusterName
-     * 
+     *
      * @return the cacheClusterName
      */
     public String getCacheClusterName() {

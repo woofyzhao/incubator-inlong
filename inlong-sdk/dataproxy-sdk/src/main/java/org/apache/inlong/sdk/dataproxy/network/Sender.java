@@ -580,6 +580,7 @@ public class Sender {
             encodeObject.setEncryptEntry(false, null, null);
         }
         encodeObject.setMsgUUID(msgUUID);
+        logger.info("===> SDK send encode object: {}", encodeObject);
         client.write(encodeObject);
     }
 

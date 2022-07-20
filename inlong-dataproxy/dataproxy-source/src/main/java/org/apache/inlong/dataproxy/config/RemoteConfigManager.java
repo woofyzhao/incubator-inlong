@@ -96,7 +96,7 @@ public class RemoteConfigManager implements IRepository {
      */
     @SuppressWarnings("unchecked")
     public static RemoteConfigManager getInstance() {
-        LOGGER.info("create repository for {}" + RemoteConfigManager.class.getSimpleName());
+        LOGGER.info("===> create repository for {}" + RemoteConfigManager.class.getSimpleName());
         if (isInit && instance != null) {
             return instance;
         }
@@ -146,7 +146,7 @@ public class RemoteConfigManager implements IRepository {
      * Reload config
      */
     public void reload() {
-        LOGGER.info("start to reload config");
+        LOGGER.info("===> start to reload config");
         String proxyClusterName = CommonPropertiesHolder.getString(KEY_PROXY_CLUSTER_NAME);
         String proxyClusterTag = CommonPropertiesHolder.getString(KEY_PROXY_CLUSTER_TAG);
         if (StringUtils.isBlank(proxyClusterName) || StringUtils.isBlank(proxyClusterTag)) {
@@ -189,23 +189,24 @@ public class RemoteConfigManager implements IRepository {
             if (StringUtils.isNotBlank(this.dataProxyConfigMd5)) {
                 url += "&md5=" + this.dataProxyConfigMd5;
             }
-            LOGGER.info("start to request {} to get config info", url);
+            LOGGER.info("===> start to request {} to get config info", url);
             httpGet = new HttpGet(url);
             httpGet.addHeader(HttpHeaders.CONNECTION, "close");
 
             // request with get
             CloseableHttpResponse response = httpClient.execute(httpGet);
             String returnStr = EntityUtils.toString(response.getEntity());
-            LOGGER.info("end to request {} to get config info:{}", url, returnStr);
+            LOGGER.info("===> end to request {} to get config info:{}", url, returnStr);
             // get groupId <-> topic and m value.
 
             DataProxyConfigResponse proxyResponse = GSON.fromJson(returnStr, DataProxyConfigResponse.class);
             if (!proxyResponse.isResult()) {
-                LOGGER.info("Fail to get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
+                LOGGER.info("===> Fail to get config info from url:{}, error code is {}", url,
+                        proxyResponse.getErrCode());
                 return false;
             }
             if (proxyResponse.getErrCode() != DataProxyConfigResponse.SUCC) {
-                LOGGER.info("get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
+                LOGGER.info("===> get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
                 return true;
             }
 
@@ -331,6 +332,7 @@ public class RemoteConfigManager implements IRepository {
      * generateFlumeSink
      */
     private void generateFlumeSinks(Map<String, String> newConfig) {
+        LOGGER.info("===> generateFlumeSinks from {}", newConfig);
         StringBuilder builder = new StringBuilder();
         DataProxyCluster currentClusterConfig = currentClusterConfigRef.get();
         ProxyClusterObject proxyClusterObject = currentClusterConfig.getProxyCluster();
@@ -401,6 +403,7 @@ public class RemoteConfigManager implements IRepository {
      * generateFlumeSources
      */
     private void generateFlumeSources(Map<String, String> newConfig) {
+        LOGGER.info("===> generateFlumeSources from {}", newConfig);
         StringBuilder builder = new StringBuilder();
         DataProxyCluster currentClusterConfig = currentClusterConfigRef.get();
         ProxyClusterObject proxyClusterObject = currentClusterConfig.getProxyCluster();

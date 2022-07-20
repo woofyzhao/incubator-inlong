@@ -18,7 +18,7 @@
 package org.apache.inlong.dataproxy.source;
 
 import com.google.common.base.Preconditions;
-
+import io.netty.channel.group.ChannelGroup;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.flume.Context;
 import org.apache.flume.source.AbstractSource;
@@ -36,10 +36,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import io.netty.channel.group.ChannelGroup;
-
 /**
- * 
  * SinkContext
  */
 public class SourceContext {
@@ -76,12 +73,13 @@ public class SourceContext {
 
     /**
      * Constructor
-     * 
+     *
      * @param source
      * @param allChannels
      * @param context
      */
     public SourceContext(AbstractSource source, ChannelGroup allChannels, Context context) {
+        LOG.info("===> create SourceContext from {}", source.getName());
         this.source = source;
         this.allChannels = allChannels;
         this.proxyClusterId = CommonPropertiesHolder.get()
@@ -111,8 +109,8 @@ public class SourceContext {
 
     /**
      * getHostIp
-     * 
-     * @param  context
+     *
+     * @param context
      * @return
      */
     private String getHostIp(Context context) {
@@ -126,8 +124,8 @@ public class SourceContext {
 
     /**
      * getHostPort
-     * 
-     * @param  context
+     *
+     * @param context
      * @return
      */
     private int getHostPort(Context context) {
@@ -189,7 +187,7 @@ public class SourceContext {
 
     /**
      * get sourceDataId
-     * 
+     *
      * @return the sourceDataId
      */
     public String getSourceDataId() {
@@ -198,7 +196,7 @@ public class SourceContext {
 
     /**
      * set sourceDataId
-     * 
+     *
      * @param sourceDataId the sourceDataId to set
      */
     public void setSourceDataId(String sourceDataId) {
@@ -207,7 +205,7 @@ public class SourceContext {
 
     /**
      * get source
-     * 
+     *
      * @return the source
      */
     public AbstractSource getSource() {
@@ -216,7 +214,7 @@ public class SourceContext {
 
     /**
      * get allChannels
-     * 
+     *
      * @return the allChannels
      */
     public ChannelGroup getAllChannels() {
@@ -225,7 +223,7 @@ public class SourceContext {
 
     /**
      * get proxyClusterId
-     * 
+     *
      * @return the proxyClusterId
      */
     public String getProxyClusterId() {
@@ -234,7 +232,7 @@ public class SourceContext {
 
     /**
      * get sourceId
-     * 
+     *
      * @return the sourceId
      */
     public String getSourceId() {
@@ -243,7 +241,7 @@ public class SourceContext {
 
     /**
      * get maxConnections
-     * 
+     *
      * @return the maxConnections
      */
     public int getMaxConnections() {
@@ -252,7 +250,7 @@ public class SourceContext {
 
     /**
      * get maxMsgLength
-     * 
+     *
      * @return the maxMsgLength
      */
     public int getMaxMsgLength() {
@@ -261,7 +259,7 @@ public class SourceContext {
 
     /**
      * get idHolder
-     * 
+     *
      * @return the idHolder
      */
     public IdTopicConfigHolder getIdHolder() {
@@ -270,7 +268,7 @@ public class SourceContext {
 
     /**
      * get metricItemSet
-     * 
+     *
      * @return the metricItemSet
      */
     public DataProxyMetricItemSet getMetricItemSet() {
@@ -279,7 +277,7 @@ public class SourceContext {
 
     /**
      * get parentContext
-     * 
+     *
      * @return the parentContext
      */
     public Context getParentContext() {
@@ -288,7 +286,7 @@ public class SourceContext {
 
     /**
      * get reloadInterval
-     * 
+     *
      * @return the reloadInterval
      */
     public long getReloadInterval() {
@@ -297,7 +295,7 @@ public class SourceContext {
 
     /**
      * get maxThreads
-     * 
+     *
      * @return the maxThreads
      */
     public int getMaxThreads() {
@@ -306,7 +304,7 @@ public class SourceContext {
 
     /**
      * isRejectService
-     * 
+     *
      * @return
      */
     public boolean isRejectService() {
@@ -315,7 +313,7 @@ public class SourceContext {
 
     /**
      * setRejectService
-     * 
+     *
      * @param isRejectService
      */
     public void setRejectService(boolean isRejectService) {

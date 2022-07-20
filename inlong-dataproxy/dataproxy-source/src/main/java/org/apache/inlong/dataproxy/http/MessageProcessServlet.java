@@ -38,6 +38,7 @@ public class MessageProcessServlet extends HttpServlet {
 
     public MessageProcessServlet(MessageHandler messageHandler) {
         this.messageHandler = messageHandler;
+        LOG.info("===> creata MessageProcessServlet");
     }
 
     @Override

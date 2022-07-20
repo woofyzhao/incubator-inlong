@@ -17,6 +17,11 @@
 
 package org.apache.inlong.dataproxy.sink.pulsar.federation;
 
+import org.apache.flume.Event;
+import org.apache.inlong.dataproxy.config.pojo.CacheClusterConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -26,13 +31,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.flume.Event;
-import org.apache.inlong.dataproxy.config.pojo.CacheClusterConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * 
  * PulsarProducerSet
  */
 public class PulsarProducerFederation {
@@ -50,11 +49,12 @@ public class PulsarProducerFederation {
 
     /**
      * Constructor
-     * 
+     *
      * @param workerName
      * @param context
      */
     public PulsarProducerFederation(String workerName, PulsarFederationSinkContext context) {
+        LOG.info("===> create PulsarProducerFederation {}", workerName);
         this.workerName = workerName;
         this.context = context;
     }
@@ -146,7 +146,7 @@ public class PulsarProducerFederation {
 
     /**
      * send
-     * 
+     *
      * @param event
      */
     public boolean send(Event event) {

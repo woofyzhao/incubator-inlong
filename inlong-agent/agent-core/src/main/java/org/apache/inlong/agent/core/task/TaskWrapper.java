@@ -95,6 +95,11 @@ public class TaskWrapper extends AbstractStateWrapper {
                     if (message == null
                             || task.getChannel().push(message, pushMaxWaitTime, TimeUnit.SECONDS)) {
                         message = task.getReader().read();
+                        if (message != null) {
+                            LOGGER.info("===> read message size = {}, body = {}, send to channel",
+                                    message.getBody().length,
+                                    new String(message.getBody()));
+                        }
                     }
                 }
                 AgentUtils.silenceSleepInMs(readWaitTime);
@@ -119,6 +124,7 @@ public class TaskWrapper extends AbstractStateWrapper {
                 if (message instanceof EndMessage) {
                     break;
                 }
+                LOGGER.info("==> fetch message of size {} and write to sink", message.getBody().length);
                 task.getSink().write(message);
             }
         }, executorService);

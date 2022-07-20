@@ -18,7 +18,7 @@
 package org.apache.inlong.dataproxy.source.tcp;
 
 import com.google.common.base.Preconditions;
-
+import io.netty.channel.ChannelInitializer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.EventDrivenSource;
@@ -33,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
-
-import io.netty.channel.ChannelInitializer;
 
 /**
  * Inlong tcp source
@@ -56,6 +54,7 @@ public class InlongTcpSource extends SimpleTcpSource
      */
     public InlongTcpSource() {
         super();
+        LOG.info("===> create InlongTcpSource");
     }
 
     /**
@@ -64,6 +63,7 @@ public class InlongTcpSource extends SimpleTcpSource
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public synchronized void startSource() {
+        LOG.info("===> start source");
         super.startSource();
     }
 
@@ -78,13 +78,13 @@ public class InlongTcpSource extends SimpleTcpSource
 
     /**
      * configure
-     * 
+     *
      * @param context
      */
     @Override
     public void configure(Context context) {
         try {
-            LOG.info("context is {}", context);
+            LOG.info("===> configuring source, context is {}", context);
             super.configure(context);
             this.sourceContext = new SourceContext(this, allChannels, context);
             // start
@@ -146,7 +146,7 @@ public class InlongTcpSource extends SimpleTcpSource
 
     /**
      * getProtocolName
-     * 
+     *
      * @return
      */
     public String getProtocolName() {

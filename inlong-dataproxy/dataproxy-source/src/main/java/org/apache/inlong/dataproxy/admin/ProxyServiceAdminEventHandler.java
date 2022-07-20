@@ -23,13 +23,12 @@ import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.inlong.sdk.commons.admin.AbstractAdminEventHandler;
 
-import java.lang.management.ManagementFactory;
-import java.util.Set;
-
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.servlet.http.HttpServletResponse;
+import java.lang.management.ManagementFactory;
+import java.util.Set;
 
 import static org.apache.inlong.dataproxy.admin.ProxyServiceMBean.MBEAN_TYPE;
 
@@ -40,7 +39,7 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
 
     /**
      * configure
-     * 
+     *
      * @param context
      */
     @Override
@@ -49,7 +48,7 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
 
     /**
      * process
-     * 
+     *
      * @param cmd
      * @param event
      * @param response
@@ -57,10 +56,10 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
     @Override
     public void process(String cmd, Event event, HttpServletResponse response) {
         String sourceName = event.getHeaders().get(ProxyServiceMBean.KEY_SOURCENAME);
-        LOG.info("start to process admin task:{},sourceName:{}", cmd, sourceName);
+        LOG.info("===> start to process admin task:{},sourceName:{}", cmd, sourceName);
         switch (cmd) {
-            case ProxyServiceMBean.METHOD_STOPSERVICE :
-            case ProxyServiceMBean.METHOD_RECOVERSERVICE :
+            case ProxyServiceMBean.METHOD_STOPSERVICE:
+            case ProxyServiceMBean.METHOD_RECOVERSERVICE:
                 if (sourceName == null) {
                     break;
                 }
@@ -70,7 +69,7 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
                     this.processOne(cmd, sourceName, response);
                 }
                 break;
-            default :
+            default:
                 break;
         }
         LOG.info("end to process admin task:{},sourceName:{}", cmd, sourceName);
@@ -78,7 +77,7 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
 
     /**
      * processOne
-     * 
+     *
      * @param cmd
      * @param sourceName
      * @param response
@@ -113,7 +112,7 @@ public class ProxyServiceAdminEventHandler extends AbstractAdminEventHandler {
 
     /**
      * processAll
-     * 
+     *
      * @param cmd
      * @param event
      * @param response

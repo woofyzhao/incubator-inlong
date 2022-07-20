@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * 
  * TubeZoneSinkContext
  */
 public class TubeZoneSinkContext extends SinkContext {
@@ -56,12 +55,13 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * Constructor
-     * 
+     *
      * @param context
      */
     public TubeZoneSinkContext(String sinkName, Context context, Channel channel,
             LinkedBlockingQueue<DispatchProfile> dispatchQueue) {
         super(sinkName, context, channel);
+        LOG.info("===> create TubeZoneSinkContext");
         this.dispatchQueue = dispatchQueue;
         // proxyClusterId
         this.proxyClusterId = CommonPropertiesHolder.getString(RemoteConfigManager.KEY_PROXY_CLUSTER_NAME);
@@ -84,6 +84,21 @@ public class TubeZoneSinkContext extends SinkContext {
     }
 
     /**
+     * fillInlongId
+     *
+     * @param currentRecord
+     * @param dimensions
+     */
+    public static void fillInlongId(DispatchProfile currentRecord, Map<String, String> dimensions) {
+        String inlongGroupId = currentRecord.getInlongGroupId();
+        inlongGroupId = (StringUtils.isBlank(inlongGroupId)) ? "-" : inlongGroupId;
+        String inlongStreamId = currentRecord.getInlongStreamId();
+        inlongStreamId = (StringUtils.isBlank(inlongStreamId)) ? "-" : inlongStreamId;
+        dimensions.put(DataProxyMetricItem.KEY_INLONG_GROUP_ID, inlongGroupId);
+        dimensions.put(DataProxyMetricItem.KEY_INLONG_STREAM_ID, inlongStreamId);
+    }
+
+    /**
      * start
      */
     public void start() {
@@ -103,7 +118,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get proxyClusterId
-     * 
+     *
      * @return the proxyClusterId
      */
     public String getProxyClusterId() {
@@ -112,7 +127,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get dispatchQueue
-     * 
+     *
      * @return the dispatchQueue
      */
     public LinkedBlockingQueue<DispatchProfile> getDispatchQueue() {
@@ -121,7 +136,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get producerContext
-     * 
+     *
      * @return the producerContext
      */
     public Context getProducerContext() {
@@ -130,7 +145,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get idTopicHolder
-     * 
+     *
      * @return the idTopicHolder
      */
     public IdTopicConfigHolder getIdTopicHolder() {
@@ -139,7 +154,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get cacheHolder
-     * 
+     *
      * @return the cacheHolder
      */
     public CacheClusterConfigHolder getCacheHolder() {
@@ -148,7 +163,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get compressType
-     * 
+     *
      * @return the compressType
      */
     public INLONG_COMPRESSED_TYPE getCompressType() {
@@ -157,7 +172,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * get nodeId
-     * 
+     *
      * @return the nodeId
      */
     public String getNodeId() {
@@ -166,7 +181,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * addSendMetric
-     * 
+     *
      * @param currentRecord
      * @param bid
      */
@@ -202,22 +217,8 @@ public class TubeZoneSinkContext extends SinkContext {
     }
 
     /**
-     * fillInlongId
-     * 
-     * @param currentRecord
-     * @param dimensions
-     */
-    public static void fillInlongId(DispatchProfile currentRecord, Map<String, String> dimensions) {
-        String inlongGroupId = currentRecord.getInlongGroupId();
-        inlongGroupId = (StringUtils.isBlank(inlongGroupId)) ? "-" : inlongGroupId;
-        String inlongStreamId = currentRecord.getInlongStreamId();
-        inlongStreamId = (StringUtils.isBlank(inlongStreamId)) ? "-" : inlongStreamId;
-        dimensions.put(DataProxyMetricItem.KEY_INLONG_GROUP_ID, inlongGroupId);
-        dimensions.put(DataProxyMetricItem.KEY_INLONG_STREAM_ID, inlongStreamId);
-    }
-
-    /**
      * processSendFail
+     *
      * @param currentRecord
      * @param producerTopic
      * @param sendTime
@@ -233,7 +234,7 @@ public class TubeZoneSinkContext extends SinkContext {
 
     /**
      * addSendResultMetric
-     * 
+     *
      * @param currentRecord
      * @param bid
      * @param result

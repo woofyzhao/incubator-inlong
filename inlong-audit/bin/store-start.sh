@@ -22,13 +22,13 @@
 BASE_DIR=$(
   # shellcheck disable=SC2164
   cd "$(dirname "$0")"
+  cd ../
   pwd
 )
 
 # Enter the root directory path
 # shellcheck disable=SC2164
 cd "$BASE_DIR"
-cd ../
 
 PID=$(ps -ef | grep "audit-store" | grep -v grep | awk '{ print $2}')
 LOG_DIR="${BASE_DIR}/logs"

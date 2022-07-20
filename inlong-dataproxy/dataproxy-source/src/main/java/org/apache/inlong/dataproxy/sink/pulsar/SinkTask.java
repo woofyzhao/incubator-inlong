@@ -18,9 +18,6 @@
 package org.apache.inlong.dataproxy.sink.pulsar;
 
 import com.google.common.cache.LoadingCache;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Event;
 import org.apache.flume.instrumentation.SinkCounter;
@@ -34,6 +31,10 @@ import org.apache.inlong.dataproxy.utils.MessageUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SinkTask extends Thread {
 
@@ -64,7 +65,7 @@ public class SinkTask extends Thread {
 
     private SinkCounter sinkCounter;
 
-    private LoadingCache<String, Long>  agentIdCache;
+    private LoadingCache<String, Long> agentIdCache;
 
     private MQClusterConfig pulsarConfig;
 
@@ -77,6 +78,7 @@ public class SinkTask extends Thread {
     public SinkTask(PulsarClientService pulsarClientService, PulsarSink pulsarSink,
             int eventQueueSize,
             int badEventQueueSize, int poolIndex, boolean canSend) {
+        logger.info("===> create SinkTask-{} for {}", pulsarSink.getName(), poolIndex);
         this.pulsarClientService = pulsarClientService;
         this.pulsarSink = pulsarSink;
         this.poolIndex = poolIndex;
@@ -92,6 +94,7 @@ public class SinkTask extends Thread {
 
     public boolean processEvent(EventStat eventStat) {
         try {
+            logger.info("===> event enqueue");
             return eventQueue.offer(eventStat, 3 * 1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             logger.error("InterruptedException e", e);
@@ -113,7 +116,7 @@ public class SinkTask extends Thread {
 
     @Override
     public void run() {
-        logger.info("Sink task {} started.", Thread.currentThread().getName());
+        logger.info("===> Sink task {} started.", Thread.currentThread().getName());
         while (canSend) {
             boolean decrementFlag = false;
             Event event = null;
@@ -127,6 +130,7 @@ public class SinkTask extends Thread {
                     eventStat = resendQueue.poll();
                     if (eventStat != null) {
                         event = eventStat.getEvent();
+                        logger.info("===> get event from resend queue: {}", event);
                     }
                 } else {
                     if (currentInFlightCount.get() > BATCH_SIZE) {
@@ -149,6 +153,7 @@ public class SinkTask extends Thread {
                     eventStat = eventQueue.take();
                     sinkCounter.incrementEventDrainAttemptCount();
                     event = eventStat.getEvent();
+                    logger.info("===> get event from event queue: {}", event);
                 }
 
                 /*
@@ -156,11 +161,13 @@ public class SinkTask extends Thread {
                  */
                 if (event.getHeaders().containsKey(TOPIC)) {
                     topic = event.getHeaders().get(TOPIC);
+                    logger.info("===> get topic from event header: {}", topic);
                 }
                 if (StringUtils.isEmpty(topic)) {
                     String groupId = event.getHeaders().get(AttributeConstants.GROUP_ID);
                     String streamId = event.getHeaders().get(AttributeConstants.STREAM_ID);
                     topic = MessageUtils.getTopic(pulsarSink.getTopicsProperties(), groupId, streamId);
+                    logger.info("===> get topic from topics properties: {}", topic);
                 }
 
                 if (event == null) {
@@ -195,6 +202,7 @@ public class SinkTask extends Thread {
 
                 if (pulsarConfig.getClientIdCache() && clientSeqId != null && hasSend) {
                     agentIdCache.put(clientSeqId, System.currentTimeMillis());
+                    logger.info("===> already sent");
                     if (logPrinterA.shouldPrint()) {
                         logger.info("{} agent package {} existed,just discard.",
                                 getName(), clientSeqId);
@@ -209,10 +217,12 @@ public class SinkTask extends Thread {
                         /*
                          * only for order message
                          */
+                        logger.info("===> pulsarClientService.sendMessage fail, add to retry");
                         processToReTrySend(eventStat);
                     }
                     currentInFlightCount.incrementAndGet();
                     decrementFlag = true;
+                    logger.info("===> send to pulsar success");
                 }
             } catch (InterruptedException e) {
                 logger.error("Thread {} has been interrupted!",

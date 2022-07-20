@@ -97,12 +97,13 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * Constructor
-     * 
+     *
      * @param workerName
      * @param config
      * @param context
      */
     public PulsarClusterProducer(String workerName, CacheClusterConfig config, PulsarZoneSinkContext context) {
+        LOG.info("===> create PulsarClusterProducer");
         this.workerName = workerName;
         this.config = config;
         this.sinkContext = context;
@@ -118,6 +119,7 @@ public class PulsarClusterProducer implements LifecycleAware {
      */
     @Override
     public void start() {
+        LOG.info("===> PulsarClusterProducer.start");
         this.state = LifecycleState.START;
         // create pulsar client
         try {
@@ -159,23 +161,23 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * getPulsarCompressionType
-     * 
+     *
      * @return CompressionType
      */
     private CompressionType getPulsarCompressionType() {
         String type = this.context.getString(KEY_COMPRESSIONTYPE, CompressionType.SNAPPY.name());
         switch (type) {
-            case "LZ4" :
+            case "LZ4":
                 return CompressionType.LZ4;
-            case "NONE" :
+            case "NONE":
                 return CompressionType.NONE;
-            case "ZLIB" :
+            case "ZLIB":
                 return CompressionType.ZLIB;
-            case "ZSTD" :
+            case "ZSTD":
                 return CompressionType.ZSTD;
-            case "SNAPPY" :
+            case "SNAPPY":
                 return CompressionType.SNAPPY;
-            default :
+            default:
                 return CompressionType.NONE;
         }
     }
@@ -203,7 +205,7 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * getLifecycleState
-     * 
+     *
      * @return
      */
     @Override
@@ -213,7 +215,7 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * send
-     * 
+     *
      * @param event
      */
     public boolean send(DispatchProfile event) {
@@ -284,9 +286,9 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * encodeCacheMessageHeaders
-     * 
-     * @param  event
-     * @return       Map
+     *
+     * @param event
+     * @return Map
      */
     public Map<String, String> encodeCacheMessageHeaders(DispatchProfile event) {
         Map<String, String> headers = new HashMap<>();
@@ -317,7 +319,7 @@ public class PulsarClusterProducer implements LifecycleAware {
 
     /**
      * get cacheClusterName
-     * 
+     *
      * @return the cacheClusterName
      */
     public String getCacheClusterName() {

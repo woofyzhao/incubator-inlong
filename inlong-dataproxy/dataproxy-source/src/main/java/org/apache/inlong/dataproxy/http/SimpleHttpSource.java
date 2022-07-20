@@ -19,18 +19,14 @@ package org.apache.inlong.dataproxy.http;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import java.util.EnumSet;
-import javax.servlet.DispatcherType;
-import org.apache.inlong.common.monitor.CounterGroup;
-import org.apache.inlong.common.monitor.CounterGroupExt;
-import java.lang.reflect.Constructor;
-import java.util.Map;
 import org.apache.flume.Context;
 import org.apache.flume.channel.ChannelProcessor;
-import org.apache.inlong.dataproxy.config.remote.ConfigMessageServlet;
-import org.apache.inlong.dataproxy.source.ServiceDecoder;
 import org.apache.flume.source.http.HTTPSource;
 import org.apache.flume.source.http.HTTPSourceConfigurationConstants;
+import org.apache.inlong.common.monitor.CounterGroup;
+import org.apache.inlong.common.monitor.CounterGroupExt;
+import org.apache.inlong.dataproxy.config.remote.ConfigMessageServlet;
+import org.apache.inlong.dataproxy.source.ServiceDecoder;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -46,15 +42,18 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SimpleHttpSource extends HttpBaseSource {
+import javax.servlet.DispatcherType;
+import java.lang.reflect.Constructor;
+import java.util.EnumSet;
+import java.util.Map;
 
-    private static final Logger LOG = LoggerFactory.getLogger(HTTPSource.class);
+public class SimpleHttpSource extends HttpBaseSource {
 
     public static final String POOL_SIZE = "poolSize";
     public static final String IDEL_TIME = "idelTime";
     public static final String BUFFER_SIZE = "bufferSize";
     public static final String BACKLOG = "backlog";
-
+    private static final Logger LOG = LoggerFactory.getLogger(HTTPSource.class);
     private volatile Integer port;
     private volatile Server srv;
     private Map<String, String> subProps;
@@ -73,6 +72,7 @@ public class SimpleHttpSource extends HttpBaseSource {
     @Override
     public void configure(Context context) {
         super.configure(context);
+        LOG.info("===> SimpleHttpSource.configure");
         try {
             port = context.getInteger(HTTPSourceConfigurationConstants.CONFIG_PORT);
             threadPoolSize = context.getInteger(POOL_SIZE, 512);

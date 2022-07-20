@@ -17,6 +17,7 @@
 
 package org.apache.inlong.dataproxy.sink.kafkazone;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
@@ -35,9 +36,9 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * 
  * KafkaZoneSinkContext
  */
+@Slf4j
 public class KafkaZoneSinkContext extends SinkContext {
 
     public static final String KEY_NODE_ID = "nodeId";
@@ -56,12 +57,13 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * Constructor
-     * 
+     *
      * @param context
      */
     public KafkaZoneSinkContext(String sinkName, Context context, Channel channel,
             LinkedBlockingQueue<DispatchProfile> dispatchQueue) {
         super(sinkName, context, channel);
+        log.info("===> create KafkaZoneSinkContext");
         this.dispatchQueue = dispatchQueue;
         // proxyClusterId
         this.proxyClusterId = CommonPropertiesHolder.getString(RemoteConfigManager.KEY_PROXY_CLUSTER_NAME);
@@ -84,6 +86,21 @@ public class KafkaZoneSinkContext extends SinkContext {
     }
 
     /**
+     * fillInlongId
+     *
+     * @param currentRecord
+     * @param dimensions
+     */
+    public static void fillInlongId(DispatchProfile currentRecord, Map<String, String> dimensions) {
+        String inlongGroupId = currentRecord.getInlongGroupId();
+        inlongGroupId = (StringUtils.isBlank(inlongGroupId)) ? "-" : inlongGroupId;
+        String inlongStreamId = currentRecord.getInlongStreamId();
+        inlongStreamId = (StringUtils.isBlank(inlongStreamId)) ? "-" : inlongStreamId;
+        dimensions.put(DataProxyMetricItem.KEY_INLONG_GROUP_ID, inlongGroupId);
+        dimensions.put(DataProxyMetricItem.KEY_INLONG_STREAM_ID, inlongStreamId);
+    }
+
+    /**
      * start
      */
     public void start() {
@@ -103,7 +120,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get proxyClusterId
-     * 
+     *
      * @return the proxyClusterId
      */
     public String getProxyClusterId() {
@@ -112,7 +129,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get dispatchQueue
-     * 
+     *
      * @return the dispatchQueue
      */
     public LinkedBlockingQueue<DispatchProfile> getDispatchQueue() {
@@ -121,7 +138,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get producerContext
-     * 
+     *
      * @return the producerContext
      */
     public Context getProducerContext() {
@@ -130,7 +147,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get idTopicHolder
-     * 
+     *
      * @return the idTopicHolder
      */
     public IdTopicConfigHolder getIdTopicHolder() {
@@ -139,7 +156,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get cacheHolder
-     * 
+     *
      * @return the cacheHolder
      */
     public CacheClusterConfigHolder getCacheHolder() {
@@ -148,7 +165,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get compressType
-     * 
+     *
      * @return the compressType
      */
     public INLONG_COMPRESSED_TYPE getCompressType() {
@@ -157,7 +174,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * get nodeId
-     * 
+     *
      * @return the nodeId
      */
     public String getNodeId() {
@@ -166,7 +183,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * addSendingMetric
-     * 
+     *
      * @param currentRecord
      * @param bid
      */
@@ -202,22 +219,8 @@ public class KafkaZoneSinkContext extends SinkContext {
     }
 
     /**
-     * fillInlongId
-     * 
-     * @param currentRecord
-     * @param dimensions
-     */
-    public static void fillInlongId(DispatchProfile currentRecord, Map<String, String> dimensions) {
-        String inlongGroupId = currentRecord.getInlongGroupId();
-        inlongGroupId = (StringUtils.isBlank(inlongGroupId)) ? "-" : inlongGroupId;
-        String inlongStreamId = currentRecord.getInlongStreamId();
-        inlongStreamId = (StringUtils.isBlank(inlongStreamId)) ? "-" : inlongStreamId;
-        dimensions.put(DataProxyMetricItem.KEY_INLONG_GROUP_ID, inlongGroupId);
-        dimensions.put(DataProxyMetricItem.KEY_INLONG_STREAM_ID, inlongStreamId);
-    }
-
-    /**
      * processSendFail
+     *
      * @param currentRecord
      * @param producerTopic
      * @param sendTime
@@ -233,7 +236,7 @@ public class KafkaZoneSinkContext extends SinkContext {
 
     /**
      * addSendResultMetric
-     * 
+     *
      * @param currentRecord
      * @param bid
      * @param result

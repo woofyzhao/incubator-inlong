@@ -17,10 +17,12 @@
 
 package org.apache.inlong.dataproxy.base;
 
-import java.util.Map;
-
+import lombok.Data;
 import org.apache.inlong.dataproxy.consts.AttributeConstants;
 
+import java.util.Map;
+
+@Data
 public class ProxyMessage {
 
     private String groupId;

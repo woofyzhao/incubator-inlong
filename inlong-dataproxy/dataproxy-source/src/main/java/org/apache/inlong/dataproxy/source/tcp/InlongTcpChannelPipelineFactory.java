@@ -17,14 +17,12 @@
 
 package org.apache.inlong.dataproxy.source.tcp;
 
+import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import java.lang.reflect.Constructor;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.conf.Configurable;
@@ -33,7 +31,8 @@ import org.apache.inlong.dataproxy.source.SourceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
+import java.lang.reflect.Constructor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * InlongTcpChannelPipelineFactory
@@ -58,13 +57,14 @@ public class InlongTcpChannelPipelineFactory extends ChannelInitializer<SocketCh
      * @param sourceContext
      */
     public InlongTcpChannelPipelineFactory(SourceContext sourceContext, String protocolType) {
+        LOG.info("===> create InlongTcpChannelPipelineFactory");
         this.sourceContext = sourceContext;
         this.protocolType = protocolType;
     }
 
     @Override
     protected void initChannel(SocketChannel ch) {
-
+        LOG.info("===> init channel");
         if (StringUtils.isEmpty(protocolType) || this.protocolType
                 .equalsIgnoreCase(ConfigConstants.TCP_PROTOCOL)) {
             ch.pipeline().addLast("messageDecoder", new LengthFieldBasedFrameDecoder(
@@ -79,7 +79,7 @@ public class InlongTcpChannelPipelineFactory extends ChannelInitializer<SocketCh
             try {
                 Class<? extends ChannelInboundHandlerAdapter> clazz =
                         (Class<? extends ChannelInboundHandlerAdapter>) Class
-                        .forName(messageHandlerName);
+                                .forName(messageHandlerName);
 
                 Constructor<?> ctor = clazz.getConstructor(SourceContext.class);
 
@@ -96,7 +96,7 @@ public class InlongTcpChannelPipelineFactory extends ChannelInitializer<SocketCh
 
     @Override
     public void configure(Context context) {
-        LOG.info("context is {}", context);
+        LOG.info("===> configuring context is {}", context);
         messageHandlerName = context.getString(ConfigConstants.MESSAGE_HANDLER_NAME,
                 InlongTcpChannelHandler.class.getName());
         messageHandlerName = messageHandlerName.trim();

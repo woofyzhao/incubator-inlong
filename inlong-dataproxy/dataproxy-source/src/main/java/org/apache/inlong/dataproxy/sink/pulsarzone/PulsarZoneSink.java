@@ -58,12 +58,12 @@ public class PulsarZoneSink extends AbstractSink implements Configurable {
 
     /**
      * configure
-     * 
+     *
      * @param context
      */
     @Override
     public void configure(Context context) {
-        LOG.info("start to configure:{}, context:{}.", this.getClass().getSimpleName(), context.toString());
+        LOG.info("===> start to configure:{}, context:{}.", this.getClass().getSimpleName(), context.toString());
         this.parentContext = context;
     }
 
@@ -72,6 +72,7 @@ public class PulsarZoneSink extends AbstractSink implements Configurable {
      */
     @Override
     public void start() {
+        LOG.info("===> PulsarZoneSink.start");
         try {
             this.context = new PulsarZoneSinkContext(getName(), parentContext, getChannel(), this.dispatchQueue);
             if (getChannel() == null) {
@@ -82,11 +83,11 @@ public class PulsarZoneSink extends AbstractSink implements Configurable {
             this.scheduledPool = Executors.newScheduledThreadPool(2);
             // dispatch
             this.scheduledPool.scheduleWithFixedDelay(new Runnable() {
-
-                public void run() {
-                    dispatchManager.setNeedOutputOvertimeData();
-                }
-            }, this.dispatchManager.getDispatchTimeout(), this.dispatchManager.getDispatchTimeout(),
+                                                          public void run() {
+                                                              dispatchManager.setNeedOutputOvertimeData();
+                                                          }
+                                                      }, this.dispatchManager.getDispatchTimeout(),
+                    this.dispatchManager.getDispatchTimeout(),
                     TimeUnit.MILLISECONDS);
             // create worker
             for (int i = 0; i < context.getMaxThreads(); i++) {
@@ -118,8 +119,8 @@ public class PulsarZoneSink extends AbstractSink implements Configurable {
 
     /**
      * process
-     * 
-     * @return                        Status
+     *
+     * @return Status
      * @throws EventDeliveryException
      */
     @Override

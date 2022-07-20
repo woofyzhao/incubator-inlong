@@ -200,6 +200,7 @@ public class DirectoryTrigger extends AbstractDaemon implements Trigger {
                         }
                         watchKeys.addAll(tmpWatchers);
                         watchKeys.removeAll(tmpDeletedWatchers);
+                        LOGGER.info("===> added watch keys for {}", pathPattern);
                     });
                 } catch (Throwable ex) {
                     LOGGER.error("error caught", ex);

@@ -232,6 +232,7 @@ public class DefaultServiceDecoder implements ServiceDecoder {
         int msgMagic = cb.getUnsignedShort(msgHeadPos + BIN_MSG_BODY_OFFSET
                 + bodyLen + BIN_MSG_ATTRLEN_SIZE + attrLen);
 
+        LOG.info("===> extractNewBinData, bodyLen = {}", bodyLen);
         if (bodyLen == 0) {
             throw new Exception(new Throwable("err msg,  bodyLen is empty"
                     + ";Connection info:" + channel.toString()));
@@ -312,6 +313,9 @@ public class DefaultServiceDecoder implements ServiceDecoder {
                     commonAttrMap.put(AttributeConstants.STREAMID_NUM, String.valueOf(streamIdNum));
                 }
             }
+
+            LOG.info("===> decode message groupID = {}, streamID = {}, attr map = {}", groupId, streamId,
+                    commonAttrMap);
 
             if (MsgType.MSG_BIN_MULTI_BODY.equals(msgType) && !index) {
                 List<ProxyMessage> msgList = new ArrayList<>(1);
@@ -419,10 +423,14 @@ public class DefaultServiceDecoder implements ServiceDecoder {
                 bodyBuffer.get(record);
 
                 ProxyMessage message = new ProxyMessage(groupId, streamId, commonAttrMap, record);
+                LOG.info("===> add proxy message, groupID = {}, streamID = {}, commonAttrMap = {}, record = {}",
+                        groupId, streamId, commonAttrMap, new String(record));
                 msgList.add(message);
             }
         } else {
             msgList = new ArrayList<>(1);
+            LOG.info("===> add proxy message, groupID = {}, streamID = {}, commonAttrMap = {}, record = {}",
+                    groupId, streamId, commonAttrMap, new String(bodyData));
             msgList.add(new ProxyMessage(groupId, streamId, commonAttrMap, bodyData));
         }
         resultMap.put(ConfigConstants.MSG_LIST, msgList);
@@ -472,6 +480,8 @@ public class DefaultServiceDecoder implements ServiceDecoder {
             MsgType msgType = MsgType.valueOf(msgTypeInt);
             resultMap.put(ConfigConstants.MSG_TYPE, msgType);
 
+            LOG.info("===> decoder extractData, msgtype = {}", msgType);
+
             // if it's heart beat or unknown message, just return without handling it.
             if (MsgType.MSG_HEARTBEAT.equals(msgType)
                     || MsgType.MSG_UNKNOWN.equals(msgType)) {
@@ -484,8 +494,10 @@ public class DefaultServiceDecoder implements ServiceDecoder {
 
             if (msgType.getValue() >= MsgType.MSG_BIN_MULTI_BODY.getValue()) {
                 resultMap.put(ConfigConstants.COMPRESS_TYPE, (compressType != 0) ? "snappy" : "");
+                LOG.info("===> extractNewBinData");
                 return extractNewBinData(resultMap, cb, channel, totalDataLen, msgType);
             } else {
+                LOG.info("===> extractDefaultData");
                 return extractDefaultData(resultMap, cb, channel, totalDataLen, msgType);
             }
 

@@ -151,7 +151,7 @@ public class JobManager extends AbstractDaemon {
         } else {
             profile.set(JOB_INSTANCE_ID, AgentUtils.getUniqId(JOB_ID_PREFIX, jobId, index.incrementAndGet()));
         }
-        LOGGER.info("submit job profile {}", profile.toJsonStr());
+        LOGGER.info("===> submit job profile {}", profile.toJsonStr());
         getJobConfDb().storeJobFirstTime(profile);
         addJob(new Job(profile));
         return true;

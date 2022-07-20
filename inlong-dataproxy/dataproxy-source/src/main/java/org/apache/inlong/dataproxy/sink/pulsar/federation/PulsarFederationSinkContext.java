@@ -17,8 +17,7 @@
 
 package org.apache.inlong.dataproxy.sink.pulsar.federation;
 
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.inlong.common.metric.MetricRegister;
@@ -29,10 +28,12 @@ import org.apache.inlong.dataproxy.config.holder.IdTopicConfigHolder;
 import org.apache.inlong.dataproxy.metrics.DataProxyMetricItemSet;
 import org.apache.inlong.dataproxy.utils.BufferQueue;
 
+import java.util.Map;
+
 /**
- * 
  * PulsarFederationContext
  */
+@Slf4j
 public class PulsarFederationSinkContext {
 
     public static final String KEY_MAX_THREADS = "max-threads";
@@ -59,10 +60,11 @@ public class PulsarFederationSinkContext {
 
     /**
      * Constructor
-     * 
+     *
      * @param context
      */
     public PulsarFederationSinkContext(String sinkName, Context context) {
+        log.info("===> create PulsarFederationSinkContext");
         this.proxyClusterId = CommonPropertiesHolder.getString(RemoteConfigManager.KEY_PROXY_CLUSTER_NAME);
         this.sinkContext = context;
         this.maxThreads = context.getInteger(KEY_MAX_THREADS, 10);
@@ -98,7 +100,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get proxyClusterId
-     * 
+     *
      * @return the proxyClusterId
      */
     public String getProxyClusterId() {
@@ -107,7 +109,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get sinkContext
-     * 
+     *
      * @return the sinkContext
      */
     public Context getSinkContext() {
@@ -116,7 +118,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get producerContext
-     * 
+     *
      * @return the producerContext
      */
     public Context getProducerContext() {
@@ -125,7 +127,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get idTopicHolder
-     * 
+     *
      * @return the idTopicHolder
      */
     public IdTopicConfigHolder getIdTopicHolder() {
@@ -134,7 +136,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get cacheHolder
-     * 
+     *
      * @return the cacheHolder
      */
     public CacheClusterConfigHolder getCacheHolder() {
@@ -143,7 +145,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get bufferQueue
-     * 
+     *
      * @return the bufferQueue
      */
     public BufferQueue<Event> getBufferQueue() {
@@ -152,7 +154,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get maxThreads
-     * 
+     *
      * @return the maxThreads
      */
     public int getMaxThreads() {
@@ -161,7 +163,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get maxTransaction
-     * 
+     *
      * @return the maxTransaction
      */
     public int getMaxTransaction() {
@@ -170,7 +172,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get processInterval
-     * 
+     *
      * @return the processInterval
      */
     public long getProcessInterval() {
@@ -179,7 +181,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get reloadInterval
-     * 
+     *
      * @return the reloadInterval
      */
     public long getReloadInterval() {
@@ -188,7 +190,7 @@ public class PulsarFederationSinkContext {
 
     /**
      * get metricItemSet
-     * 
+     *
      * @return the metricItemSet
      */
     public DataProxyMetricItemSet getMetricItemSet() {

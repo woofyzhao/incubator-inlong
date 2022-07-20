@@ -17,11 +17,6 @@
 
 package org.apache.inlong.dataproxy.sink.pulsar.federation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -33,8 +28,12 @@ import org.apache.inlong.dataproxy.metrics.DataProxyMetricItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * 
  * PulsarSetSink
  */
 public class PulsarFederationSink extends AbstractSink implements Configurable {
@@ -50,6 +49,7 @@ public class PulsarFederationSink extends AbstractSink implements Configurable {
      */
     @Override
     public void start() {
+        LOG.info("===> PulsarFederationSink start");
         String sinkName = this.getName();
         // create worker
         for (int i = 0; i < context.getMaxThreads(); i++) {
@@ -78,7 +78,7 @@ public class PulsarFederationSink extends AbstractSink implements Configurable {
 
     /**
      * configure
-     * 
+     *
      * @param context
      */
     @Override
@@ -92,8 +92,8 @@ public class PulsarFederationSink extends AbstractSink implements Configurable {
 
     /**
      * process
-     * 
-     * @return                        Status
+     *
+     * @return Status
      * @throws EventDeliveryException
      */
     @Override
