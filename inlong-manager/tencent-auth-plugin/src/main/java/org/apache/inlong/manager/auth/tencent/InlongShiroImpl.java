@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.web.auth;
+package org.apache.inlong.manager.auth.tencent;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.auth.InlongShiro;
 import org.apache.inlong.manager.common.util.SHAUtils;
 import org.apache.inlong.manager.service.user.UserService;
-import org.apache.inlong.manager.web.auth.openapi.OpenAPIAuthenticatingRealm;
-import org.apache.inlong.manager.web.auth.openapi.OpenAPIFilter;
-import org.apache.inlong.manager.web.auth.web.AuthenticationFilter;
-import org.apache.inlong.manager.web.auth.web.WebAuthorizingRealm;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.SecurityManager;
@@ -52,7 +48,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "type", prefix = "inlong.auth", havingValue = "default")
+@ConditionalOnProperty(name = "type", prefix = "inlong.auth", havingValue = "woofytest")
 public class InlongShiroImpl implements InlongShiro {
 
     private static final String FILTER_NAME_WEB = "authWeb";
@@ -71,11 +67,10 @@ public class InlongShiroImpl implements InlongShiro {
 
     @Override
     public Collection<Realm> getShiroRealms() {
-        log.info("===> getShiroRealms Old");
+        log.info("===> getShiroRealms New");
         AuthorizingRealm webRealm = new WebAuthorizingRealm(userService);
         webRealm.setCredentialsMatcher(getCredentialsMatcher());
-        Realm apiRealm = new OpenAPIAuthenticatingRealm(userService);
-        return Arrays.asList(webRealm, apiRealm);
+        return Arrays.asList(webRealm);
     }
 
     @Override
@@ -100,7 +95,7 @@ public class InlongShiroImpl implements InlongShiro {
         filters.put(FILTER_NAME_WEB, new AuthenticationFilter());
         shiroFilterFactoryBean.setFilters(filters);
         Map<String, String> pathDefinitions = new LinkedHashMap<>();
-        // login, register request
+        //login, register request
         pathDefinitions.put("/api/anno/**/*", "anon");
 
         // swagger api
@@ -111,15 +106,16 @@ public class InlongShiroImpl implements InlongShiro {
         pathDefinitions.put("/swagger-resources", "anon");
 
         // openapi
-        if (openAPIAuthEnabled) {
-            filters.put(FILTER_NAME_API, new OpenAPIFilter());
-            pathDefinitions.put("/openapi/**/*", FILTER_NAME_API);
-        } else {
+        // if (openAPIAuthEnabled) {
+        //     filters.put(FILTER_NAME_API, new OpenAPIFilter());
+        //     pathDefinitions.put("/openapi/**/*", FILTER_NAME_API);
+        // } else {
             pathDefinitions.put("/openapi/**/*", "anon");
-        }
+        //}
 
         // other web
         pathDefinitions.put("/**", FILTER_NAME_WEB);
+        log.info("===> getShiroFilter New");
 
         shiroFilterFactoryBean.setFilterChainDefinitionMap(pathDefinitions);
         return shiroFilterFactoryBean;

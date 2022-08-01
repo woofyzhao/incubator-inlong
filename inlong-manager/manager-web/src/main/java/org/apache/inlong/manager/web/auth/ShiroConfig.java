@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.web.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.auth.InlongShiro;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
@@ -34,6 +35,7 @@ import java.util.Collection;
 /**
  * Inlong hiro config.
  */
+@Slf4j
 @Configuration
 public class ShiroConfig {
 
@@ -42,6 +44,7 @@ public class ShiroConfig {
 
     @Bean
     public Collection<Realm> shiroRealms() {
+        log.info("===> injecting shiro realms config");
         return inlongShiro.getShiroRealms();
     }
 
