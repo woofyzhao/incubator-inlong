@@ -15,14 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.auth.tencent;
+package org.apache.inlong.manager.plugin.auth;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.auth.InlongShiro;
-import org.apache.inlong.manager.common.util.SHAUtils;
+import org.apache.inlong.manager.plugin.auth.openapi.OpenAPIAuthenticationFilter;
+import org.apache.inlong.manager.plugin.auth.openapi.OpenAPIAuthorizingRealm;
+import org.apache.inlong.manager.plugin.auth.web.WebAuthenticationFilter;
+import org.apache.inlong.manager.plugin.auth.web.WebAuthorizingRealm;
+import org.apache.inlong.manager.plugin.common.beans.AuthConfig;
+import org.apache.inlong.manager.plugin.common.enums.Env;
+import org.apache.inlong.manager.plugin.service.SmartGateService;
+import org.apache.inlong.manager.service.core.RoleService;
 import org.apache.inlong.manager.service.user.UserService;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
-import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.realm.Realm;
@@ -44,21 +49,29 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Inlong shiro service layer implementation.
+ * Shiro configuration provider plugin implementation
  */
-@Slf4j
 @Component
-@ConditionalOnProperty(name = "type", prefix = "inlong.auth", havingValue = "woofytest")
+@ConditionalOnProperty(name = "type", prefix = "inlong.auth", havingValue = "tencent")
 public class InlongShiroImpl implements InlongShiro {
 
     private static final String FILTER_NAME_WEB = "authWeb";
     private static final String FILTER_NAME_API = "authAPI";
 
     @Autowired
+    private RoleService roleService;
+
+    @Autowired
     private UserService userService;
 
-    @Value("${openapi.auth.enabled:false}")
-    private Boolean openAPIAuthEnabled;
+    @Autowired
+    private SmartGateService smartGateService;
+
+    @Autowired
+    private AuthConfig authConfig;
+
+    @Value("${spring.profiles.active}")
+    private String env;
 
     @Override
     public WebSecurityManager getWebSecurityManager() {
@@ -67,10 +80,15 @@ public class InlongShiroImpl implements InlongShiro {
 
     @Override
     public Collection<Realm> getShiroRealms() {
-        log.info("===> getShiroRealms New");
-        AuthorizingRealm webRealm = new WebAuthorizingRealm(userService);
+        // web realm
+        AuthorizingRealm webRealm = new WebAuthorizingRealm(userService, smartGateService, authConfig);
         webRealm.setCredentialsMatcher(getCredentialsMatcher());
-        return Arrays.asList(webRealm);
+
+        // openAPI realm
+        AuthorizingRealm openAPIRealm = new OpenAPIAuthorizingRealm(roleService, authConfig);
+        openAPIRealm.setCredentialsMatcher(getCredentialsMatcher());
+
+        return Arrays.asList(webRealm, openAPIRealm);
     }
 
     @Override
@@ -80,23 +98,22 @@ public class InlongShiroImpl implements InlongShiro {
 
     @Override
     public CredentialsMatcher getCredentialsMatcher() {
-        HashedCredentialsMatcher hashedCredentialsMatcher = new HashedCredentialsMatcher();
-        hashedCredentialsMatcher.setHashAlgorithmName(SHAUtils.ALGORITHM_NAME);
-        hashedCredentialsMatcher.setHashIterations(1024);
-        return hashedCredentialsMatcher;
+        return (authenticationToken, authenticationInfo) -> true;
     }
 
     @Override
     public ShiroFilterFactoryBean getShiroFilter(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
-        // anon: can be accessed by anyone, authc: only authentication is successful can be accessed
+
         Map<String, Filter> filters = new LinkedHashMap<>();
-        filters.put(FILTER_NAME_WEB, new AuthenticationFilter());
+        boolean allowMock = !Env.PROD.equals(Env.forName(env));
+        filters.put(FILTER_NAME_WEB, new WebAuthenticationFilter(allowMock));
+        filters.put(FILTER_NAME_API, new OpenAPIAuthenticationFilter(allowMock, roleService));
         shiroFilterFactoryBean.setFilters(filters);
+
+        // anon: can be accessed by anyone
         Map<String, String> pathDefinitions = new LinkedHashMap<>();
-        //login, register request
-        pathDefinitions.put("/api/anno/**/*", "anon");
 
         // swagger api
         pathDefinitions.put("/doc.html", "anon");
@@ -105,17 +122,11 @@ public class InlongShiroImpl implements InlongShiro {
         pathDefinitions.put("/swagger-resources/**/*", "anon");
         pathDefinitions.put("/swagger-resources", "anon");
 
-        // openapi
-        // if (openAPIAuthEnabled) {
-        //     filters.put(FILTER_NAME_API, new OpenAPIFilter());
-        //     pathDefinitions.put("/openapi/**/*", FILTER_NAME_API);
-        // } else {
-            pathDefinitions.put("/openapi/**/*", "anon");
-        //}
+        // open api
+        pathDefinitions.put("/openapi/**/*", FILTER_NAME_API);
 
         // other web
         pathDefinitions.put("/**", FILTER_NAME_WEB);
-        log.info("===> getShiroFilter New");
 
         shiroFilterFactoryBean.setFilterChainDefinitionMap(pathDefinitions);
         return shiroFilterFactoryBean;

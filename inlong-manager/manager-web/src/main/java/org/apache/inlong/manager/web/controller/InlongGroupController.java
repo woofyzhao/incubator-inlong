@@ -21,6 +21,7 @@ import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.enums.OperationType;
 import org.apache.inlong.manager.common.enums.UserTypeEnum;
 import org.apache.inlong.manager.pojo.common.Response;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Inlong group control layer
  */
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @Api(tags = "Inlong-Group-API")
@@ -77,6 +79,7 @@ public class InlongGroupController {
     @RequestMapping(value = "/group/list", method = RequestMethod.POST)
     @ApiOperation(value = "Get inlong group list by paginating")
     public Response<PageInfo<InlongGroupBriefInfo>> listBrief(@RequestBody InlongGroupPageRequest request) {
+        log.info("===> login user info = {}", LoginUserUtils.getLoginUser());
         request.setCurrentUser(LoginUserUtils.getLoginUser().getName());
         request.setIsAdminRole(LoginUserUtils.getLoginUser().getRoles().contains(UserTypeEnum.ADMIN.name()));
         return Response.success(groupService.listBrief(request));

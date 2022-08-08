@@ -15,65 +15,69 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.auth.tencent;
+package org.apache.inlong.manager.plugin.auth.web;
 
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.inlong.manager.common.enums.UserTypeEnum;
-import org.apache.inlong.manager.common.util.Preconditions;
+import org.apache.inlong.manager.plugin.common.beans.AuthConfig;
+import org.apache.inlong.manager.plugin.service.SmartGateService;
 import org.apache.inlong.manager.pojo.user.UserInfo;
+import org.apache.inlong.manager.service.user.LoginUserUtils;
 import org.apache.inlong.manager.service.user.UserService;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.authc.SimpleAuthenticationInfo;
-import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 
-import java.util.Date;
-
 /**
- * Web user authorization.
+ * Web authorizing realm
  */
 @Slf4j
 public class WebAuthorizingRealm extends AuthorizingRealm {
 
-    private final UserService userService;
+    private final TofAuthenticator tofAuthenticator;
+    private final MockAuthenticator mockAuthenticator;
 
-    public WebAuthorizingRealm(UserService userService) {
-        this.userService = userService;
-        log.info("===> set userService = {}", userService);
+    public WebAuthorizingRealm(UserService userService, SmartGateService smartGateService, AuthConfig authConfig) {
+        this.tofAuthenticator = new TofAuthenticator(userService, smartGateService,
+                authConfig.getTofKey());
+        this.mockAuthenticator = new MockAuthenticator(userService, smartGateService);
     }
 
-    /**
-     * Login authentication
-     */
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        UsernamePasswordToken upToken = (UsernamePasswordToken) token;
-        String username = upToken.getUsername();
-        UserInfo userInfo = userService.getByName(username);
-        log.info("===> get user info = {}", userInfo);
-        Preconditions.checkNotNull(userInfo, "User not exist with name=" + username);
-        Preconditions.checkTrue(userInfo.getDueDate().after(new Date()), "User " + username + " was expired");
-        userInfo.setRoles(Sets.newHashSet(userInfo.getAccountType() == 0
-                ? UserTypeEnum.ADMIN.name() : UserTypeEnum.OPERATOR.name()));
-        return new SimpleAuthenticationInfo(userInfo, userInfo.getPassword(), getName());
+    public boolean supports(AuthenticationToken token) {
+        return token instanceof MockAuthenticationToken
+                || token instanceof TofAuthenticationToken;
     }
 
     /**
-     * URI access control
+     * Get authorization info
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
         UserInfo userInfo = (UserInfo) getAvailablePrincipal(principalCollection);
         if (userInfo != null) {
-            simpleAuthorizationInfo.setRoles(userInfo.getRoles());
+            authorizationInfo.setRoles(userInfo.getRoles());
+            LoginUserUtils.getLoginUser().setRoles(authorizationInfo.getRoles());
         }
-        return simpleAuthorizationInfo;
+        return authorizationInfo;
+    }
+
+    /**
+     * Get authentication info
+     */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        if (token instanceof TofAuthenticationToken) {
+            return tofAuthenticator.authenticate(token);
+        }
+        if (token instanceof MockAuthenticationToken) {
+            return mockAuthenticator.authenticate(token);
+        }
+
+        throw new AuthenticationException("no authentication");
     }
 }

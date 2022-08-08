@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.auth.tencent;
+package org.apache.inlong.manager.plugin.auth.openapi;
 
-import org.apache.inlong.manager.common.auth.InlongShiro;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.apache.inlong.manager.plugin.common.enums.AuthenticationType;
+import org.apache.shiro.authc.AuthenticationToken;
 
 /**
- * Tool testing
+ * Basic authentication token
  */
-public class AuthTest {
+public interface BasicAuthenticationToken extends AuthenticationToken {
 
-    @Test
-    public void testCopyProperties() {
-        InlongShiro shiro = new InlongShiroImpl();
-        Assertions.assertNull(shiro.getShiroRealms());
-    }
-
+    /**
+     * Get authentication type
+     */
+    AuthenticationType getType();
 }

@@ -137,6 +137,11 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.tencent.tdw</groupId>
+            <artifactId>security-common</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

@@ -15,29 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.dao.mapper;
+package org.apache.inlong.manager.plugin.service;
 
-import org.apache.inlong.manager.dao.entity.UserEntity;
-import org.apache.inlong.manager.pojo.user.UserRequest;
-import org.springframework.stereotype.Repository;
+import org.apache.inlong.manager.plugin.common.pojo.smtgate.StaffBaseInfo;
 
-import java.util.List;
+/**
+ * Tencent SmartGate Service
+ */
+public interface SmartGateService {
 
-@Repository
-public interface UserEntityMapper {
-
-    int insert(UserEntity record);
-
-    UserEntity selectById(Integer id);
-
-    UserEntity selectByName(String name);
-
-    List<UserEntity> selectByCondition(UserRequest request);
-
-    int updateById(UserEntity record);
-
-    int deleteById(Integer id);
-
-    int updateByPrimaryKeySelective(UserEntity record);
+    /**
+     * Get staff info by staff English name
+     */
+    StaffBaseInfo getStaffByEnName(String name);
 
 }

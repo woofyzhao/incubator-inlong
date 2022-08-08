@@ -26,7 +26,6 @@ import org.apache.inlong.manager.pojo.user.UserRequest;
 import org.apache.inlong.manager.service.user.LoginUserUtils;
 import org.apache.inlong.manager.service.user.UserService;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -50,17 +49,20 @@ public class AnnoController {
 
     @PostMapping("/anno/login")
     public Response<Boolean> login(@Validated @RequestBody UserLoginRequest loginRequest) {
-        Subject subject = SecurityUtils.getSubject();
-        UsernamePasswordToken token = new UsernamePasswordToken(loginRequest.getUsername(), loginRequest.getPassword());
-        subject.login(token);
-        LoginUserUtils.setUserLoginInfo((UserInfo) subject.getPrincipal());
 
+        Subject subject = SecurityUtils.getSubject();
+        // UsernamePasswordToken token =
+        // new UsernamePasswordToken(loginRequest.getUsername(), loginRequest.getPassword());
+        // subject.login(token);
+        UserInfo userInfo = (UserInfo) subject.getPrincipal();
+        log.info("===> mock login, userInfo = {}", userInfo);
+        LoginUserUtils.setUserLoginInfo(userInfo);
         return Response.success(true);
     }
 
     @PostMapping("/anno/register")
     public Response<Integer> register(@Validated @RequestBody UserRequest request) {
-        return Response.success(userService.save(request));
+        return Response.success(userService.save(request, request.getName()));
     }
 
     @GetMapping("/anno/logout")

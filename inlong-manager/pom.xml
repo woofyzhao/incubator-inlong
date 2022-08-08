@@ -42,6 +42,7 @@
         <module>manager-client</module>
         <module>manager-client-examples</module>
         <module>manager-client-tools</module>
+        <module>tencent-auth-plugin</module>
     </modules>
 
     <dependencies>

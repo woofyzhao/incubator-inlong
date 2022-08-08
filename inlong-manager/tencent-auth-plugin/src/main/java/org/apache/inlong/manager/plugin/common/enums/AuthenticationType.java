@@ -15,29 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.dao.mapper;
+package org.apache.inlong.manager.plugin.common.enums;
 
-import org.apache.inlong.manager.dao.entity.UserEntity;
-import org.apache.inlong.manager.pojo.user.UserRequest;
-import org.springframework.stereotype.Repository;
+/**
+ * Ahentication type
+ */
+public enum AuthenticationType {
 
-import java.util.List;
+    /**
+     * OA or Web
+     */
+    TOF,
 
-@Repository
-public interface UserEntityMapper {
+    /**
+     * TianQiong
+     */
+    TAUTH,
 
-    int insert(UserEntity record);
-
-    UserEntity selectById(Integer id);
-
-    UserEntity selectByName(String name);
-
-    List<UserEntity> selectByCondition(UserRequest request);
-
-    int updateById(UserEntity record);
-
-    int deleteById(Integer id);
-
-    int updateByPrimaryKeySelective(UserEntity record);
+    /**
+     * Mock
+     */
+    MOCK
 
 }

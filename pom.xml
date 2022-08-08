@@ -99,7 +99,6 @@
         <module>inlong-manager</module>
         <module>inlong-dashboard</module>
         <module>inlong-distribution</module>
-        <module>inlong-manager/manager-auth-plugins</module>
     </modules>
 
     <properties>
@@ -251,10 +250,25 @@
         <HikariCP.version>4.0.3</HikariCP.version>
 
         <kafka.clients.version>3.0.0</kafka.clients.version>
+
+        <tencent.tdw.version>1.0.1</tencent.tdw.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- tianqiong -->
+            <dependency>
+                <groupId>com.tencent.tdw</groupId>
+                <artifactId>security-common</artifactId>
+                <version>${tencent.tdw.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-log4j12</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
             <!-- flume dependency -->
             <dependency>
                 <groupId>org.apache.flume</groupId>

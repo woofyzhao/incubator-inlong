@@ -15,29 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.dao.mapper;
+package org.apache.inlong.manager.plugin.common.pojo.smtgate;
 
-import org.apache.inlong.manager.dao.entity.UserEntity;
-import org.apache.inlong.manager.pojo.user.UserRequest;
-import org.springframework.stereotype.Repository;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
+/**
+ * Tencent SmartGate configuration
+ */
+@Data
+@Component
+@Configuration
+@ConfigurationProperties(prefix = "inlong.smartgate")
+public class SmartGateConfig {
 
-@Repository
-public interface UserEntityMapper {
-
-    int insert(UserEntity record);
-
-    UserEntity selectById(Integer id);
-
-    UserEntity selectByName(String name);
-
-    List<UserEntity> selectByCondition(UserRequest request);
-
-    int updateById(UserEntity record);
-
-    int deleteById(Integer id);
-
-    int updateByPrimaryKeySelective(UserEntity record);
-
+    private String appId;
+    private String token;
+    private String host;
 }

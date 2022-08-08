@@ -15,29 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.inlong.manager.dao.mapper;
+package org.apache.inlong.manager.plugin.common.pojo.smtgate;
 
-import org.apache.inlong.manager.dao.entity.UserEntity;
-import org.apache.inlong.manager.pojo.user.UserRequest;
-import org.springframework.stereotype.Repository;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.List;
+/**
+ * Staff info
+ */
+@Data
+public class StaffBaseInfo {
 
-@Repository
-public interface UserEntityMapper {
-
-    int insert(UserEntity record);
-
-    UserEntity selectById(Integer id);
-
-    UserEntity selectByName(String name);
-
-    List<UserEntity> selectByCondition(UserRequest request);
-
-    int updateById(UserEntity record);
-
-    int deleteById(Integer id);
-
-    int updateByPrimaryKeySelective(UserEntity record);
-
+    @JsonProperty("StaffID")
+    private Integer staffID;
+    @JsonProperty("EnName")
+    private String enName;
+    @JsonProperty("ChnName")
+    private String chName;
+    @JsonProperty("DepartmentID")
+    private Integer departmentID;
+    @JsonProperty("WorkDeptID")
+    private Integer workDeptID;
+    @JsonProperty("DeptIDString")
+    private String deptIDString;
+    @JsonProperty("DeptNameString")
+    private String deptNameString;
 }
