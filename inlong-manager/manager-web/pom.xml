@@ -139,6 +139,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.inlong</groupId>
+            <artifactId>tencent-auth-plugin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.tencent.tdw</groupId>
             <artifactId>security-common</artifactId>
         </dependency>
