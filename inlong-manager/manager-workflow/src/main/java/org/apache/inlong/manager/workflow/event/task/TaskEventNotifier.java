@@ -47,15 +47,18 @@ public class TaskEventNotifier implements EventListenerNotifier<TaskEvent> {
     @Override
     public ListenerResult notify(TaskEvent event, WorkflowContext context) {
         WorkflowTask task = (WorkflowTask) context.getCurrentElement();
+        log.info("===> [Workflow] noify event {} for task {}", event, task);
         List<LogableTaskEventListener> logableListeners = task.listeners(event).stream()
                 .map(listener -> logableEventListener(listener))
                 .collect(Collectors.toList());
 
         for (LogableTaskEventListener listener : logableListeners) {
+            log.info("===> [Workflow][Listener] start logableListener {}", listener.name());
             ListenerResult result = listener.listen(context);
             if (!result.isSuccess()) {
                 return result;
             }
+            log.info("===> [Workflow][Listener] logableListener {} done", listener.name());
         }
         return ListenerResult.success();
 

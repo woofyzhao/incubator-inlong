@@ -62,7 +62,7 @@ public abstract class AbstractSourceOperateListener implements SourceOperateList
 
     @Override
     public ListenerResult listen(WorkflowContext context) throws Exception {
-        log.info("operate stream source for context={}", context);
+        log.info("===> operate stream source for context={}", context);
         InlongGroupInfo groupInfo = getGroupInfo(context.getProcessForm());
         final String groupId = groupInfo.getInlongGroupId();
         List<InlongStreamBriefInfo> streamResponses = streamService.listBriefWithSink(groupId);
@@ -89,7 +89,10 @@ public abstract class AbstractSourceOperateListener implements SourceOperateList
         List<StreamSource> sources = streamSourceService.listSource(groupId, streamId);
         sources.forEach(source -> {
             if (checkIfOp(source, unOperatedSources)) {
+                log.info("===> source {}-{} need to be operated", source.getId(), source.getSourceName());
                 operateStreamSource(source.genSourceRequest(), operator);
+            } else {
+                log.info("===> source {}-{} need not to be operated", source.getId(), source.getSourceName());
             }
         });
     }
@@ -99,8 +102,7 @@ public abstract class AbstractSourceOperateListener implements SourceOperateList
      */
     @SneakyThrows
     public boolean checkIfOp(StreamSource streamSource, List<StreamSource> unOperatedSources) {
-        // if a source has sub-sources, it is considered a template source.
-        // template sources do not need to be operated, its sub-sources will be processed in this method later.
+        // template source task need not be operated
         if (CollectionUtils.isNotEmpty(streamSource.getSubSourceList())) {
             return false;
         }

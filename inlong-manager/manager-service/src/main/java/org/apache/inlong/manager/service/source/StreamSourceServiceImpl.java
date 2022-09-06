@@ -232,7 +232,7 @@ public class StreamSourceServiceImpl implements StreamSourceService {
     @Transactional(rollbackFor = Throwable.class, propagation = Propagation.REQUIRES_NEW,
             isolation = Isolation.READ_COMMITTED)
     public Boolean delete(Integer id, String operator) {
-        LOGGER.info("begin to delete source for id={} by user={}", id, operator);
+        LOGGER.info("===> begin to delete source for id={} by user={}", id, operator);
         Preconditions.checkNotNull(id, ErrorCodeEnum.ID_IS_EMPTY.getMessage());
 
         StreamSourceEntity entity = sourceMapper.selectByIdForUpdate(id);
@@ -268,7 +268,7 @@ public class StreamSourceServiceImpl implements StreamSourceService {
     @Transactional(rollbackFor = Throwable.class, propagation = Propagation.REQUIRES_NEW,
             isolation = Isolation.READ_COMMITTED)
     public Boolean restart(Integer id, String operator) {
-        LOGGER.info("begin to restart source by id={}", id);
+        LOGGER.info("===> begin to restart source by id={}", id);
         StreamSourceEntity entity = sourceMapper.selectByIdForUpdate(id);
         Preconditions.checkNotNull(entity, ErrorCodeEnum.SOURCE_INFO_NOT_FOUND.getMessage());
 
@@ -285,7 +285,7 @@ public class StreamSourceServiceImpl implements StreamSourceService {
     @Transactional(rollbackFor = Throwable.class, propagation = Propagation.REQUIRES_NEW,
             isolation = Isolation.READ_COMMITTED)
     public Boolean stop(Integer id, String operator) {
-        LOGGER.info("begin to stop source by id={}", id);
+        LOGGER.info("===> begin to stop source by id={}", id);
         StreamSourceEntity entity = sourceMapper.selectByIdForUpdate(id);
         Preconditions.checkNotNull(entity, ErrorCodeEnum.SOURCE_INFO_NOT_FOUND.getMessage());
 
@@ -294,7 +294,7 @@ public class StreamSourceServiceImpl implements StreamSourceService {
         CommonBeanUtils.copyProperties(entity, sourceRequest, true);
         sourceOperator.stopOpt(sourceRequest, operator);
 
-        LOGGER.info("success to stop source info: {}", entity);
+        LOGGER.info("===> success to stop source info: {}", entity);
         return true;
     }
 

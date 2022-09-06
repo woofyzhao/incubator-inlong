@@ -79,11 +79,18 @@ public class ProcessorExecutorImpl implements ProcessorExecutor {
         ElementProcessor processor = this.getProcessor(element.getClass());
         context.setCurrentElement(element);
 
+        log.info("===> [Workflow] executeStart element {}, processor = {}",
+                element.getName(), processor.getClass().getName());
+
         if (!processor.create(element, context)) {
+            log.info("===> [Workflow] processor.create failed for element {}", element.getName());
             return;
         }
 
+        log.info("===> [Workflow] processor.create done for element {}", element.getName());
+
         if (processor.pendingForAction(context)) {
+            log.info("===> [Workflow] element {} pending for user action", element.getName());
             return;
         }
 
@@ -94,11 +101,18 @@ public class ProcessorExecutorImpl implements ProcessorExecutor {
     public void executeComplete(Element element, WorkflowContext context) {
         ElementProcessor processor = this.getProcessor(element.getClass());
         context.setCurrentElement(element);
+
+        log.info("===> [Workflow] executeComplete element {}, processor = {}",
+                element.getName(), processor.getClass().getName());
+
         if (!processor.complete(context)) {
+            log.info("===> [Workflow] processor.complete failed for element {}", element.getName());
             return;
         }
+
         List<Element> nextElements = processor.next(element, context);
         for (Element next : nextElements) {
+            log.info("===> [Workflow] executeStart next element {}", next.getName());
             executeStart(next, context);
         }
     }

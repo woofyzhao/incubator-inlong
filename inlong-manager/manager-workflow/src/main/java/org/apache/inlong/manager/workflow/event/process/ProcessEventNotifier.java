@@ -43,6 +43,7 @@ public class ProcessEventNotifier implements EventListenerNotifier<ProcessEvent>
     @Override
     public ListenerResult notify(ProcessEvent event, WorkflowContext context) {
         WorkflowProcess process = context.getProcess();
+        log.info("===> [Workflow] noify event {} for process {}", event, process.getName());
         List<LogableProcessEventListener> logableListeners = process.listeners(event).stream()
                 .map(listener -> logableEventListener(listener))
                 .collect(Collectors.toList());

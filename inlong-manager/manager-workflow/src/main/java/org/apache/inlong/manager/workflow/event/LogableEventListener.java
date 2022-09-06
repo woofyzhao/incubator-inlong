@@ -59,31 +59,36 @@ public abstract class LogableEventListener<EventType extends WorkflowEvent> impl
     }
 
     private ListenerResult executeListenerWithoutLog(WorkflowContext context) {
+        log.info("===> [Workflow][Listener] executeListenerWithoutLog");
         WorkflowEventLogEntity workflowEventLogEntity = buildEventLog(context);
         try {
             ListenerResult result = eventListener.listen(context);
-            log.debug("listener execute result: {} - {}", workflowEventLogEntity, result);
+            log.debug("===> [Workflow][Listener] listener execute result: {} - {}", workflowEventLogEntity, result);
             return result;
         } catch (Exception e) {
-            log.error("execute listener " + workflowEventLogEntity + " error: ", e);
+            log.error("===> [Workflow][Listener] execute listener " + workflowEventLogEntity + " error: ", e);
             return ListenerResult.fail(e);
         }
     }
 
     private ListenerResult executeListenerWithLog(WorkflowContext context) {
+        log.info("===> [Workflow][Listener] executeListenerWithLog");
         WorkflowEventLogEntity logEntity = buildEventLog(context);
         ListenerResult result;
         try {
+            log.info("===> [Workflow][Listener] start event listener {}", eventListener.getClass().getSimpleName());
             result = eventListener.listen(context);
+            log.info("===> [Workflow][Listener] event listener {} finished, result = {}",
+                    eventListener.getClass().getSimpleName(), result);
             logEntity.setStatus(
                     result.isSuccess() ? EventStatus.SUCCESS.getStatus() : EventStatus.FAILED.getStatus());
             logEntity.setRemark(result.getRemark());
             logEntity.setException(
                     Optional.ofNullable(result.getException()).map(Exception::getMessage).orElse(null));
         } catch (Exception e) {
+            log.error("===> [Workflow][Listener] execute listener " + logEntity + " error: ", e);
             logEntity.setStatus(EventStatus.FAILED.getStatus());
             logEntity.setException(e.getMessage());
-            log.error("execute listener " + logEntity + " error: ", e);
             result = ListenerResult.fail(e);
         } finally {
             logEntity.setEndTime(new Date());

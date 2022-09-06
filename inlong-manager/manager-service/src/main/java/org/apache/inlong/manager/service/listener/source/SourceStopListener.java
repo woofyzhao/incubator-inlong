@@ -17,6 +17,7 @@
 
 package org.apache.inlong.manager.service.listener.source;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.inlong.manager.common.consts.InlongConstants;
 import org.apache.inlong.manager.common.enums.GroupOperateType;
 import org.apache.inlong.manager.pojo.source.SourceRequest;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 /**
  * Listener of source stop event.
  */
+@Slf4j
 @Component
 public class SourceStopListener extends AbstractSourceOperateListener {
 
@@ -47,6 +49,7 @@ public class SourceStopListener extends AbstractSourceOperateListener {
 
     @Override
     public void operateStreamSource(SourceRequest sourceRequest, String operator) {
+        log.info("===> SourceStopListener.operateStreamSource");
         streamSourceService.stop(sourceRequest.getId(), operator);
     }
 }

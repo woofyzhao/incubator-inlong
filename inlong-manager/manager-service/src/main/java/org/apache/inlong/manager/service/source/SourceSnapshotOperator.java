@@ -109,6 +109,7 @@ public class SourceSnapshotOperator implements AutoCloseable {
      * Put snapshot into data queue
      */
     public Boolean snapshot(TaskSnapshotRequest request) {
+        LOGGER.info("===> snapshot request = {}", request);
         if (request == null) {
             return true;
         }

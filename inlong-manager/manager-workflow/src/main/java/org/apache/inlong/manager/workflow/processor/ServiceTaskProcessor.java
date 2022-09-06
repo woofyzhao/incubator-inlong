@@ -79,6 +79,7 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
 
     @Override
     public boolean create(ServiceTask serviceTask, WorkflowContext context) {
+        log.info("===> [Workflow] start ServiceTaskProcessor.create for serviceTask {}", serviceTask.getName());
         context.setCurrentElement(serviceTask);
         WorkflowTaskEntity workflowTaskEntity = resetActionContext(context);
         try {
@@ -87,9 +88,10 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
             if (!listenerResult.isSuccess()) {
                 failedTask(context, workflowTaskEntity);
             }
+            log.info("===> [Workflow] end ServiceTaskProcessor.create for serviceTask {}", serviceTask.getName());
             return listenerResult.isSuccess();
         } catch (Exception e) {
-            log.error("Create service task failed", e);
+            log.error("===> [Workflow] Create service task failed", e);
             failedTask(context, workflowTaskEntity);
             return false;
         }
@@ -107,18 +109,20 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
             resetActionContext(context);
         }
         WorkflowTaskEntity workflowTaskEntity = actionContext.getTaskEntity();
+        log.info("===> [Workflow] start ServiceTaskProcessor.complete for task entity {}", workflowTaskEntity);
         Preconditions.checkTrue(ALLOW_COMPLETE_STATE.contains(TaskStatus.valueOf(workflowTaskEntity.getStatus())),
                 "task status should allow complete");
         try {
             ListenerResult listenerResult = this.taskEventNotifier.notify(TaskEvent.COMPLETE, context);
             if (!listenerResult.isSuccess()) {
+                log.info("===> [Workflow] listener result failed, fail task {}", workflowTaskEntity);
                 failedTask(context, workflowTaskEntity);
             } else {
                 completeTaskEntity(context, workflowTaskEntity, TaskStatus.COMPLETED);
             }
             return listenerResult.isSuccess();
         } catch (Exception e) {
-            log.error("Complete service task failed", e);
+            log.error("===> [Workflow] Complete service task failed", e);
             failedTask(context, workflowTaskEntity);
             return false;
         }
@@ -150,6 +154,7 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
                 .setAction(WorkflowAction.COMPLETE)
                 .setTaskEntity(taskEntity);
         context.setActionContext(actionContext);
+        log.info("===> [Workflow] resetActionContext done for task {}", taskEntity);
         return taskEntity;
     }
 
@@ -195,6 +200,7 @@ public class ServiceTaskProcessor extends AbstractTaskProcessor<ServiceTask> {
         }
         taskEntity.setEndTime(new Date());
         taskEntityMapper.update(taskEntity);
+        log.info("===> [Workflow] completeTaskEntity done for {}", taskEntity);
     }
 
 }

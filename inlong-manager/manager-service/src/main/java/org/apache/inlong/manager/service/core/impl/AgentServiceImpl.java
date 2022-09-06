@@ -111,6 +111,7 @@ public class AgentServiceImpl implements AgentService {
      * @param command command info.
      */
     private void updateTaskStatus(CommandEntity command) {
+        LOGGER.info("===> updateTaskStatus for command = {}", command);
         Integer taskId = command.getTaskId();
         StreamSourceEntity current = sourceMapper.selectForAgentTask(taskId);
         if (current == null) {
@@ -144,7 +145,7 @@ public class AgentServiceImpl implements AgentService {
 
         if (nextStatus != previousStatus) {
             sourceMapper.updateStatus(taskId, nextStatus, false);
-            LOGGER.info("task result=[{}], update source status to [{}] for id [{}]", result, nextStatus, taskId);
+            LOGGER.info("===> task result=[{}], update source status to [{}] for id [{}]", result, nextStatus, taskId);
         }
     }
 

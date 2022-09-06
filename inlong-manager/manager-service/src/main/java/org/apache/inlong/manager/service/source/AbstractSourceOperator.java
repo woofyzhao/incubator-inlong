@@ -183,6 +183,7 @@ public abstract class AbstractSourceOperator implements StreamSourceOperator {
     @Override
     @Transactional(rollbackFor = Throwable.class, isolation = Isolation.REPEATABLE_READ)
     public void stopOpt(SourceRequest request, String operator) {
+        LOGGER.info("===> run stopOpt for source request = {}", request);
         StreamSourceEntity existEntity = sourceMapper.selectByIdForUpdate(request.getId());
         SourceStatus curState = SourceStatus.forCode(existEntity.getStatus());
         SourceStatus nextState = SourceStatus.TO_BE_ISSUED_FROZEN;
