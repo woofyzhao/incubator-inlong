@@ -57,6 +57,7 @@ public class MessageQueueZoneProducer {
     public MessageQueueZoneProducer(String workerName, MessageQueueZoneSinkContext context) {
         this.workerName = workerName;
         this.context = context;
+        LOG.info("===> MessageQueueZoneProducer created for worker {}", workerName);
     }
 
     /**
@@ -64,7 +65,7 @@ public class MessageQueueZoneProducer {
      */
     public void start() {
         try {
-            LOG.info("start MessageQueueZoneProducer:{}", workerName);
+            LOG.info("===> start MessageQueueZoneProducer of worker {}", workerName);
             this.reload();
             this.setReloadTimer();
         } catch (Exception e) {
@@ -94,6 +95,7 @@ public class MessageQueueZoneProducer {
         TimerTask task = new TimerTask() {
 
             public void run() {
+                LOG.info("===> reload mq cluster list");
                 reload();
             }
         };
@@ -113,6 +115,7 @@ public class MessageQueueZoneProducer {
             deletingClusterList.clear();
             // update cluster list
             List<CacheClusterConfig> configList = this.context.getCacheHolder().getConfigList();
+            LOG.info("===> cache cluster configList = {}", configList);
             List<MessageQueueClusterProducer> newClusterList = new ArrayList<>(configList.size());
             // prepare
             Set<String> newClusterNames = new HashSet<>();
@@ -129,6 +132,8 @@ public class MessageQueueZoneProducer {
                     MessageQueueClusterProducer cluster = new MessageQueueClusterProducer(workerName, config, context);
                     cluster.start();
                     newClusterList.add(cluster);
+                    LOG.info("===> new MessageQueueClusterProducer (handler = {}) added from config {}",
+                            cluster.getHandler().getClass().getSimpleName(), config);
                 }
             }
             // remove
@@ -140,6 +145,7 @@ public class MessageQueueZoneProducer {
                 }
             }
             this.clusterList = newClusterList;
+            LOG.info("===> clusterList.size = {}", clusterList.size());
         } catch (Throwable e) {
             LOG.error(e.getMessage(), e);
         }
@@ -159,6 +165,7 @@ public class MessageQueueZoneProducer {
         int currentSize = currentClusterList.size();
         int realIndex = currentIndex % currentSize;
         MessageQueueClusterProducer clusterProducer = currentClusterList.get(realIndex);
+        LOG.info("===> clusterProducer.send by cluster index {}/{}", realIndex, clusterIndex.get());
         return clusterProducer.send(event);
     }
 }

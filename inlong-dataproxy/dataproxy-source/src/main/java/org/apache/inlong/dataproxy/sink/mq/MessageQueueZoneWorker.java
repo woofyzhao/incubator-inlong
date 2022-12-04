@@ -57,6 +57,7 @@ public class MessageQueueZoneWorker extends Thread {
         this.zoneProducer.start();
         this.status = LifecycleState.START;
         super.start();
+        LOG.info("===> sink worker {} started", workerName);
     }
 
     /**
@@ -74,7 +75,7 @@ public class MessageQueueZoneWorker extends Thread {
      */
     @Override
     public void run() {
-        LOG.info(String.format("start MessageQueueZoneWorker:%s", this.workerName));
+        LOG.info(String.format("===> start MessageQueueZoneWorker:%s", this.workerName));
         while (status != LifecycleState.STOP) {
             BatchPackProfile event = null;
             try {
@@ -84,7 +85,8 @@ public class MessageQueueZoneWorker extends Thread {
                     continue;
                 }
                 // send
-                this.zoneProducer.send(event);
+                boolean result = this.zoneProducer.send(event);
+                LOG.info("===> send event {}: {}", event, result);
             } catch (Throwable e) {
                 LOG.error(e.getMessage(), e);
                 if (event != null) {

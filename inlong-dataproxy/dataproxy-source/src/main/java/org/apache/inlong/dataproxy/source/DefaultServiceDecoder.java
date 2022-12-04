@@ -430,10 +430,12 @@ public class DefaultServiceDecoder implements ServiceDecoder {
         Map<String, Object> resultMap = new HashMap<>();
         if (null == cb) {
             LOG.error("cb == null");
+            LOG.info("===> cb == null!");
             return resultMap;
         }
         int totalLen = cb.readableBytes();
         if (ConfigConstants.MSG_MAX_LENGTH_BYTES < totalLen) {
+            LOG.info("===> totalLen {} too large!", totalLen);
             throw new Exception("Error msg, ConfigConstants.MSG_MAX_LENGTH_BYTES "
                     + "< totalLen, and  totalLen=" + totalLen);
         }
@@ -442,6 +444,8 @@ public class DefaultServiceDecoder implements ServiceDecoder {
         int totalDataLen = cb.readInt();
         if (totalDataLen + HEAD_LENGTH <= totalLen) {
             int msgTypeInt = cb.readByte();
+            LOG.info("===> msgType = {}", msgTypeInt);
+
             int compressType = ((msgTypeInt & 0xE0) >> 5);
             MsgType msgType = MsgType.valueOf(msgTypeInt);
             resultMap.put(ConfigConstants.MSG_TYPE, msgType);
@@ -449,24 +453,30 @@ public class DefaultServiceDecoder implements ServiceDecoder {
             // if it's heart beat or unknown message, just return without handling it.
             if (MsgType.MSG_HEARTBEAT.equals(msgType)
                     || MsgType.MSG_UNKNOWN.equals(msgType)) {
+                LOG.info("===> heartbeat or unknown msg type!");
                 return resultMap;
             }
             // if it's bin heart beat.
             if (MsgType.MSG_BIN_HEARTBEAT.equals(msgType)) {
+                LOG.info("===> extractNewBinHB");
                 return extractNewBinHB(resultMap, cb, channel, totalDataLen);
             }
             // process data message
             if (msgType.getValue() >= MsgType.MSG_BIN_MULTI_BODY.getValue()) {
                 resultMap.put(ConfigConstants.COMPRESS_TYPE, (compressType != 0) ? "snappy" : "");
+                LOG.info("===> extractNewBinData");
                 return extractNewBinData(resultMap, cb,
                         channel, totalDataLen, msgType,
                         strRemoteIP, msgRcvTime);
             } else {
+                LOG.info("===> extractDefaultData");
                 return extractDefaultData(resultMap, cb,
                         totalDataLen, msgType, strRemoteIP, msgRcvTime);
             }
         } else {
             // reset index.
+            LOG.info("===> reset index: totalDataLen = {}, HEAD_LENGTH = {}, totalLen = {}", totalDataLen,
+                    HEAD_LENGTH, totalLen);
             cb.resetReaderIndex();
             return null;
         }

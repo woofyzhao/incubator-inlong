@@ -17,6 +17,7 @@
 
 package org.apache.inlong.dataproxy.sink.mq;
 
+import lombok.Getter;
 import org.apache.flume.lifecycle.LifecycleAware;
 import org.apache.flume.lifecycle.LifecycleState;
 import org.apache.inlong.dataproxy.config.pojo.CacheClusterConfig;
@@ -36,6 +37,7 @@ public class MessageQueueClusterProducer implements LifecycleAware {
     private final String cacheClusterName;
     private LifecycleState state;
 
+    @Getter
     private MessageQueueHandler handler;
 
     /**
@@ -54,6 +56,7 @@ public class MessageQueueClusterProducer implements LifecycleAware {
         this.cacheClusterName = config.getClusterName();
         this.handler = this.sinkContext.createMessageQueueHandler(config);
         this.handler.init(config, context);
+        LOG.info("===> mq cluster producer created by mq config {}", config);
     }
 
     /**

@@ -151,6 +151,7 @@ public class PulsarClientService {
         String errMsg = "";
         try {
             producerInfo = getProducerInfo(poolIndex, topic, inlongGroupId, inlongStreamId);
+            logger.info("===> producer info = {}", producerInfo);
         } catch (Exception e) {
             errMsg = "Get producer failed for topic=" + topic + ", reason is " + e.getMessage();
         }

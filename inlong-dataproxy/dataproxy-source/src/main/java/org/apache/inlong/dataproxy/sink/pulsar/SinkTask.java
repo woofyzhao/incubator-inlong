@@ -126,6 +126,7 @@ public class SinkTask extends Thread {
                     if (eventStat != null) {
                         event = eventStat.getEvent();
                     }
+                    logger.info("===> process resend event");
                 } else {
                     if (currentInFlightCount.get() > BATCH_SIZE) {
                         /*
@@ -160,12 +161,15 @@ public class SinkTask extends Thread {
                 }
                 // get topic
                 topic = event.getHeaders().get(ConfigConstants.TOPIC_KEY);
+                logger.info("===> event header topic = {}", topic);
                 if (StringUtils.isEmpty(topic)) {
                     String groupId = event.getHeaders().get(AttributeConstants.GROUP_ID);
                     String streamId = event.getHeaders().get(AttributeConstants.STREAM_ID);
                     topic = MessageUtils.getTopic(pulsarSink.getTopicsProperties(), groupId, streamId);
+                    logger.info("===> MessageUtils.getTopic = {}", topic);
                 }
                 if (topic == null || topic.equals("")) {
+                    logger.info("===> no topic!");
                     pulsarSink.handleRequestProcError(topic, eventStat,
                             false, DataProxyErrCode.TOPIC_IS_BLANK, "");
                     continue;
@@ -188,6 +192,7 @@ public class SinkTask extends Thread {
                 }
                 // send message
                 pulsarClientService.sendMessage(poolIndex, topic, eventStat, pulsarSink);
+                logger.info("===> pulsarClientService.sendMessage OK");
             } catch (InterruptedException e) {
                 logger.error("Thread {} has been interrupted!",
                         Thread.currentThread().getName());

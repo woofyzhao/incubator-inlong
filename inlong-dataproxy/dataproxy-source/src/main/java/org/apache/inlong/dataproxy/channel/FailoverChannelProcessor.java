@@ -240,6 +240,7 @@ public class FailoverChannelProcessor
     public void processEvent(Event event) {
         event = interceptorChain.intercept(event);
         if (event == null) {
+            LOG.info("===> process event is null!");
             return;
         }
         String errMsg = "";
@@ -254,6 +255,8 @@ public class FailoverChannelProcessor
                 reqChannel.put(event);
 
                 tx.commit();
+
+                LOG.info("===> reqChannel {} put {} ok", reqChannel.getName(), event.getClass().getSimpleName());
 
             } catch (Throwable t) {
                 errMsg = "Unable to put event on channel" + reqChannel.getName()

@@ -114,6 +114,9 @@ public class ServerMessageFactory
         this.isCompressed = isCompressed;
         this.monitorIndex = monitorIndex;
         this.monitorIndexExt = monitorIndexExt;
+        LOG.info("===> created ServerMessageFactory, source = {}, name = {}, topic = {}, protocolType = {}, "
+                + "serviceDecoder = {}, messageHandlerName = {}", source, name, topic, protocol,
+                serviceDecoder, messageHandlerName);
     }
 
     @Override

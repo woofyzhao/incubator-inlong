@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flume.Context;
 import org.apache.inlong.common.pojo.dataproxy.DataProxyCluster;
 import org.apache.inlong.common.pojo.dataproxy.InLongIdObject;
@@ -32,6 +33,7 @@ import org.apache.inlong.dataproxy.config.pojo.IdTopicConfig;
  * 
  * ManagerIdTopicConfigLoader
  */
+@Slf4j
 public class ManagerIdTopicConfigLoader implements IdTopicConfigLoader {
 
     /**
@@ -41,9 +43,11 @@ public class ManagerIdTopicConfigLoader implements IdTopicConfigLoader {
      */
     @Override
     public List<IdTopicConfig> load() {
+        log.info("===> ManagerIdTopicConfigLoader.load");
         List<IdTopicConfig> configList = new ArrayList<>();
         DataProxyCluster dataProxyCluster = RemoteConfigManager.getInstance().getCurrentClusterConfig();
         if (dataProxyCluster == null) {
+            log.info("===> dataProxyCluster is null, use cached configList = {}", configList);
             return configList;
         }
         for (InLongIdObject obj : dataProxyCluster.getProxyCluster().getInlongIds()) {
@@ -61,6 +65,9 @@ public class ManagerIdTopicConfigLoader implements IdTopicConfigLoader {
             config.setDataType(DataType.convert(params.getOrDefault("dataType", DataType.TEXT.value())));
             config.setFieldDelimiter(params.getOrDefault("fieldDelimiter", "|"));
             config.setFileDelimiter(params.getOrDefault("fileDelimiter", "\n"));
+            // by woofyzhao
+            config.setNamespace(params.get("namespace"));
+            log.info("===> new IdTopicConfig added = {}", config);
             configList.add(config);
         }
         return configList;

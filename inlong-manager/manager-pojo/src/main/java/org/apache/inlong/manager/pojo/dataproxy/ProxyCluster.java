@@ -17,9 +17,12 @@
 
 package org.apache.inlong.manager.pojo.dataproxy;
 
+import lombok.Data;
+
 /**
  * ProxyCluster
  */
+@Data
 public class ProxyCluster {
 
     private String clusterName;

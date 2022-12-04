@@ -17,12 +17,14 @@
 
 package org.apache.inlong.dataproxy.config.pojo;
 
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * 
  * IdTopicConfig
  */
+@Data
 public class IdTopicConfig {
 
     private String uid;
@@ -32,6 +34,8 @@ public class IdTopicConfig {
     private DataType dataType = DataType.TEXT;
     private String fieldDelimiter = "|";
     private String fileDelimiter = "\n";
+    // by woofyzhao
+    private String namespace;
 
     /**
      * get uid

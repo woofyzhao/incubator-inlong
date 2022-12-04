@@ -17,6 +17,7 @@
 
 package org.apache.inlong.dataproxy.sink.mq.pulsar;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flume.Context;
 import org.apache.inlong.dataproxy.config.pojo.CacheClusterConfig;
 import org.apache.inlong.dataproxy.config.pojo.IdTopicConfig;
@@ -27,11 +28,10 @@ import org.apache.inlong.dataproxy.sink.mq.MessageQueueZoneSinkContext;
 import org.apache.inlong.dataproxy.sink.mq.OrderBatchPackProfileV0;
 import org.apache.inlong.dataproxy.sink.mq.SimpleBatchPackProfileV0;
 import org.apache.pulsar.client.api.AuthenticationFactory;
+import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.CompressionType;
 import org.apache.pulsar.client.api.MessageId;
-import org.apache.pulsar.client.api.MessageRoutingMode;
 import org.apache.pulsar.client.api.Producer;
-import org.apache.pulsar.client.api.ProducerAccessMode;
 import org.apache.pulsar.client.api.ProducerBuilder;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * PulsarHandler
@@ -112,37 +111,60 @@ public class PulsarHandler implements MessageQueueHandler {
         try {
             String serviceUrl = config.getParams().get(KEY_SERVICE_URL);
             String authentication = config.getParams().get(KEY_AUTHENTICATION);
+
             Context context = sinkContext.getProducerContext();
-            this.client = PulsarClient.builder()
+
+            LOG.info("===> [MQResource] create pulsar client, serviceUrl = {}, authentication = {}, ioThreads = {}, "
+                    + "memoryLimit = {}, connectionsPerBroker = {}", serviceUrl, authentication,
+                    context.getInteger(KEY_IOTHREADS, 6),
+                    context.getLong(KEY_MEMORYLIMIT, 1073741824L),
+                    context.getInteger(KEY_CONNECTIONSPERBROKER, 10));
+
+            ClientBuilder builder = PulsarClient.builder();
+            if (StringUtils.isNotBlank(authentication)) {
+                builder.authentication(AuthenticationFactory.token(authentication));
+            }
+            this.client = builder
                     .serviceUrl(serviceUrl)
-                    .authentication(AuthenticationFactory.token(authentication))
-                    .ioThreads(context.getInteger(KEY_IOTHREADS, 1))
+                    .ioThreads(context.getInteger(KEY_IOTHREADS, 6)) // by woofyzhao
                     .memoryLimit(context.getLong(KEY_MEMORYLIMIT, 1073741824L), SizeUnit.BYTES)
                     .connectionsPerBroker(context.getInteger(KEY_CONNECTIONSPERBROKER, 10))
                     .build();
-            this.baseBuilder = client.newProducer();
-            // Map<String, Object> builderConf = new HashMap<>();
-            // builderConf.putAll(context.getParameters());
-            this.baseBuilder
-                    .sendTimeout(context.getInteger(KEY_SENDTIMEOUT, 0), TimeUnit.MILLISECONDS)
-                    .maxPendingMessages(context.getInteger(KEY_MAXPENDINGMESSAGES, 500))
-                    .maxPendingMessagesAcrossPartitions(
-                            context.getInteger(KEY_MAXPENDINGMESSAGESACROSSPARTITIONS, 60000));
-            this.baseBuilder
-                    .batchingMaxMessages(context.getInteger(KEY_BATCHINGMAXMESSAGES, 500))
-                    .batchingMaxPublishDelay(context.getInteger(KEY_BATCHINGMAXPUBLISHDELAY, 100),
-                            TimeUnit.MILLISECONDS)
-                    .batchingMaxBytes(context.getInteger(KEY_BATCHINGMAXBYTES, 131072));
-            this.baseBuilder
-                    .accessMode(ProducerAccessMode.Shared)
-                    .messageRoutingMode(MessageRoutingMode.RoundRobinPartition)
-                    .blockIfQueueFull(context.getBoolean(KEY_BLOCKIFQUEUEFULL, true));
-            this.baseBuilder
-                    .roundRobinRouterBatchingPartitionSwitchFrequency(
-                            context.getInteger(KEY_ROUNDROBINROUTERBATCHINGPARTITIONSWITCHFREQUENCY, 60))
-                    .enableBatching(context.getBoolean(KEY_ENABLEBATCHING, true))
-                    .compressionType(this.getPulsarCompressionType());
+
+            // client = PulsarClient.builder()
+            // .serviceUrl("pulsar://127.0.0.1:6650")
+            // .authentication(null)
+            // // .allowTlsInsecureConnection(true)
+            // .ioThreads(6)
+            // .memoryLimit(1073741824L, SizeUnit.BYTES)
+            // .connectionsPerBroker(10)
+            // .build();
+            LOG.info("===> [MQResource] pulsar client created");
+
+            // this.baseBuilder = client.newProducer();
+            // // Map<String, Object> builderConf = new HashMap<>();
+            // // builderConf.putAll(context.getParameters());
+            // this.baseBuilder
+            // .sendTimeout(context.getInteger(KEY_SENDTIMEOUT, 0), TimeUnit.MILLISECONDS)
+            // .maxPendingMessages(context.getInteger(KEY_MAXPENDINGMESSAGES, 500))
+            // .maxPendingMessagesAcrossPartitions(
+            // context.getInteger(KEY_MAXPENDINGMESSAGESACROSSPARTITIONS, 60000));
+            // this.baseBuilder
+            // .batchingMaxMessages(context.getInteger(KEY_BATCHINGMAXMESSAGES, 500))
+            // .batchingMaxPublishDelay(context.getInteger(KEY_BATCHINGMAXPUBLISHDELAY, 100),
+            // TimeUnit.MILLISECONDS)
+            // .batchingMaxBytes(context.getInteger(KEY_BATCHINGMAXBYTES, 131072));
+            // this.baseBuilder
+            // .accessMode(ProducerAccessMode.Shared)
+            // .messageRoutingMode(MessageRoutingMode.RoundRobinPartition)
+            // .blockIfQueueFull(context.getBoolean(KEY_BLOCKIFQUEUEFULL, true));
+            // this.baseBuilder
+            // .roundRobinRouterBatchingPartitionSwitchFrequency(
+            // context.getInteger(KEY_ROUNDROBINROUTERBATCHINGPARTITIONSWITCHFREQUENCY, 60))
+            // .enableBatching(context.getBoolean(KEY_ENABLEBATCHING, true))
+            // .compressionType(this.getPulsarCompressionType());
         } catch (Throwable e) {
+            LOG.info("===> PulsarHandler start fail");
             LOG.error(e.getMessage(), e);
         }
     }
@@ -152,14 +174,17 @@ public class PulsarHandler implements MessageQueueHandler {
      */
     @Override
     public void stop() {
+        LOG.info("===> [MQResource] stop PulsarHandler");
         for (Entry<String, Producer<byte[]>> entry : this.producerMap.entrySet()) {
             try {
+                LOG.info("===> [MQResource] producer {} closing!", entry.getValue().getProducerName());
                 entry.getValue().close();
             } catch (PulsarClientException e) {
                 LOG.error(e.getMessage(), e);
             }
         }
         try {
+            LOG.info("===> [MQResource] PulsarClient closing!");
             this.client.close();
         } catch (PulsarClientException e) {
             LOG.error(e.getMessage(), e);
@@ -174,64 +199,96 @@ public class PulsarHandler implements MessageQueueHandler {
     @Override
     public boolean send(BatchPackProfile event) {
         try {
+            LOG.info("===> sending BatchPackProfile uid = {}, groupId = {}, streamId = {}",
+                    event.getUid(), event.getInlongGroupId(), event.getInlongStreamId());
+
             // idConfig
             IdTopicConfig idConfig = sinkContext.getIdTopicHolder().getIdConfig(event.getUid());
             if (idConfig == null) {
+                LOG.info("===> idConfig is null!");
                 sinkContext.addSendResultMetric(event, event.getUid(), false, 0);
                 sinkContext.getDispatchQueue().release(event.getSize());
                 return false;
             }
+            LOG.info("===> idConfig = {}", idConfig);
+
             String baseTopic = idConfig.getTopicName();
+            LOG.info("===> baseTopic = {}", baseTopic);
             if (baseTopic == null) {
                 sinkContext.addSendResultMetric(event, event.getUid(), false, 0);
                 sinkContext.getDispatchQueue().release(event.getSize());
                 return false;
             }
+
             // topic
-            String producerTopic = this.getProducerTopic(baseTopic);
+            String producerTopic = this.getProducerTopic(baseTopic, idConfig);
             if (producerTopic == null) {
                 sinkContext.addSendResultMetric(event, event.getUid(), false, 0);
                 sinkContext.getDispatchQueue().release(event.getSize());
                 event.fail();
                 return false;
             }
+            LOG.info("===> producerTopic = {}, eventUid = {}", producerTopic, event.getUid());
+
             // metric
             sinkContext.addSendMetric(event, producerTopic);
             // get producer
             Producer<byte[]> producer = this.producerMap.get(producerTopic);
             if (producer == null) {
                 try {
-                    LOG.info("try to new a object for topic " + producerTopic);
                     SecureRandom secureRandom = new SecureRandom(
                             (producerTopic + System.currentTimeMillis()).getBytes());
                     String producerName = producerTopic + "-" + secureRandom.nextLong();
-                    producer = baseBuilder.clone().topic(producerTopic)
-                            .producerName(producerName)
-                            .create();
-                    LOG.info("create new producer success:{}", producer.getProducerName());
+                    // producer = baseBuilder.clone().topic(producerTopic)
+                    // .producerName(producerName)
+                    // .create();
+                    LOG.info(
+                            "===> [MQResource] producer of {} not found, try to create a producer {} object for this topic",
+                            producerTopic, producerName);
+                    producer = client.newProducer().topic(producerTopic).producerName(producerName).create();
+
+                    LOG.info("===> [MQResource] create new producer success:{}", producer.getProducerName());
                     Producer<byte[]> oldProducer = this.producerMap.putIfAbsent(producerTopic, producer);
                     if (oldProducer != null) {
                         producer.close();
-                        LOG.info("close producer success:{}", producer.getProducerName());
+                        LOG.info("===> [MQResource] close producer success:{}", producer.getProducerName());
                         producer = oldProducer;
                     }
                 } catch (Throwable ex) {
+                    LOG.info("===> [MQResource] create new producer failed!", ex);
                     LOG.error("create new producer failed", ex);
+
+                    LOG.info("===> [TEST] runTest with new client");
+                    new Test().runTest(null, producerTopic);
+                    LOG.info("===> [TEST] runTest with new client done");
+
+                    try {
+                        LOG.info("===> [TEST] runTest with existed client:");
+                        new Test().runTest(this.client, producerTopic);
+                        LOG.info("===> [TEST] runTest with existed client done");
+                    } catch (Throwable ex2) {
+                        LOG.info("===> [TEST] runTest with existed client failed!", ex);
+                    }
                 }
             }
             // create producer failed
             if (producer == null) {
+                LOG.info("===> [MQResource] create producer failed!");
                 sinkContext.processSendFail(event, producerTopic, 0);
                 return false;
             }
             // send
             if (event instanceof SimpleBatchPackProfileV0) {
+                LOG.info("===> sendSimpleProfileV0");
                 this.sendSimpleProfileV0((SimpleBatchPackProfileV0) event, idConfig, producer, producerTopic);
             } else if (event instanceof OrderBatchPackProfileV0) {
+                LOG.info("===> sendOrderProfileV0");
                 this.sendOrderProfileV0((OrderBatchPackProfileV0) event, idConfig, producer, producerTopic);
             } else {
+                LOG.info("===> sendProfileV1");
                 this.sendProfileV1(event, idConfig, producer, producerTopic);
             }
+            LOG.info("===> send success");
             return true;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -243,13 +300,15 @@ public class PulsarHandler implements MessageQueueHandler {
     /**
      * getProducerTopic
      */
-    private String getProducerTopic(String baseTopic) {
+    private String getProducerTopic(String baseTopic, IdTopicConfig config) {
         StringBuilder builder = new StringBuilder();
         if (tenant != null) {
             builder.append(tenant).append("/");
         }
-        if (namespace != null) {
-            builder.append(namespace).append("/");
+        if (config.getNamespace() != null && !config.getTopicName().isEmpty()) {
+            builder.append(config.getNamespace()).append("/");
+        } else if (namespace != null) {
+            builder.append(config.getNamespace()).append("/");
         }
         builder.append(baseTopic);
         return builder.toString();
@@ -284,6 +343,7 @@ public class PulsarHandler implements MessageQueueHandler {
      */
     private void sendProfileV1(BatchPackProfile event, IdTopicConfig idConfig, Producer<byte[]> producer,
             String producerTopic) throws Exception {
+        LOG.info("===> sendProfileV1");
         // headers
         Map<String, String> headers = this.handler.parseHeader(idConfig, event, sinkContext.getNodeId(),
                 sinkContext.getCompressType());

@@ -116,11 +116,12 @@ public class DataProxyConfigRepository implements IRepository {
 
     @PostConstruct
     public void initialize() {
-        LOGGER.info("create repository for " + DataProxyConfigRepository.class.getSimpleName());
+        LOGGER.info("===> create repository for " + DataProxyConfigRepository.class.getSimpleName());
         try {
             this.reloadInterval = DEFAULT_HEARTBEAT_INTERVAL_MS;
             reload();
             setReloadTimer();
+            LOGGER.info("===> reload timer started at interval {}", reloadInterval);
         } catch (Throwable t) {
             LOGGER.error("Initialize DataProxyConfigRepository error", t);
         }
@@ -204,11 +205,12 @@ public class DataProxyConfigRepository implements IRepository {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void reload() {
-        LOGGER.info("start to reload config:" + this.getClass().getSimpleName());
+        LOGGER.info("===> start to reload config:" + this.getClass().getSimpleName());
         // reload proxy cluster
         Map<String, DataProxyCluster> proxyClusterMap = new HashMap<>();
         this.reloadProxyCluster(proxyClusterMap);
         if (proxyClusterMap.size() == 0) {
+            LOGGER.info("===> no data proxy cluster found, abort");
             return;
         }
         // reload cache cluster
@@ -219,7 +221,11 @@ public class DataProxyConfigRepository implements IRepository {
         // generateClusterJson
         this.generateClusterJson(proxyClusterMap);
 
-        LOGGER.info("end to reload config:" + this.getClass().getSimpleName());
+        LOGGER.info("===> proxyClusterMap = {}", proxyClusterMap);
+
+        LOGGER.info("===> proxyConfigJson = {}", proxyConfigJson);
+
+        LOGGER.info("===> end to reload config:" + this.getClass().getSimpleName());
     }
 
     /**
@@ -241,10 +247,12 @@ public class DataProxyConfigRepository implements IRepository {
      * reloadCacheCluster
      */
     private void reloadCacheCluster(Map<String, DataProxyCluster> proxyClusterMap) {
+        LOGGER.info("===> reloadCacheCluster");
         // reload cache cluster
         Map<String, Map<String, List<CacheCluster>>> cacheClusterMap = new HashMap<>();
         for (CacheCluster cacheCluster : clusterSetMapper.selectCacheCluster()) {
             if (StringUtils.isEmpty(cacheCluster.getExtTag())) {
+                LOGGER.info("===> cacheCluster {} ext tag missing, ignore", cacheCluster.getClusterName());
                 continue;
             }
             Map<String, String> tagMap = MAP_SPLITTER.split(cacheCluster.getExtTag());
@@ -254,6 +262,7 @@ public class DataProxyConfigRepository implements IRepository {
                         .computeIfAbsent(cacheCluster.getExtTag(), k -> new ArrayList<>()).add(cacheCluster);
             }
         }
+        LOGGER.info("===> cacheClusterMap = {}", cacheClusterMap);
         // mark cache cluster to proxy cluster
         Map<String, Map<String, String>> tagCache = new HashMap<>();
         for (Entry<String, DataProxyCluster> entry : proxyClusterMap.entrySet()) {
@@ -263,6 +272,8 @@ public class DataProxyConfigRepository implements IRepository {
             String clusterTag = proxyObj.getSetName();
             String extTag = proxyObj.getZone();
             Map<String, List<CacheCluster>> cacheClusterZoneMap = cacheClusterMap.get(clusterTag);
+            LOGGER.info("===> attaching mq cluster for data proxy {}, candidate map = {}", proxyObj,
+                    cacheClusterZoneMap);
             if (cacheClusterZoneMap != null) {
                 Map<String, String> subTagMap = tagCache.computeIfAbsent(extTag, k -> MAP_SPLITTER.split(extTag));
                 for (Entry<String, List<CacheCluster>> cacheEntry : cacheClusterZoneMap.entrySet()) {
@@ -271,6 +282,8 @@ public class DataProxyConfigRepository implements IRepository {
                     }
                     Map<String, String> wholeTagMap = tagCache.computeIfAbsent(cacheEntry.getKey(),
                             k -> MAP_SPLITTER.split(cacheEntry.getKey()));
+                    LOGGER.info("===> cacheEntry = {}, wholeTagMap = {}, subTagMap = {}", cacheEntry, wholeTagMap,
+                            subTagMap);
                     if (isSubTag(wholeTagMap, subTagMap)) {
                         CacheClusterSetObject cacheSet = clusterObj.getCacheClusterSet();
                         cacheSet.setSetName(clusterTag);
@@ -283,6 +296,7 @@ public class DataProxyConfigRepository implements IRepository {
                             obj.setZone(cacheCluster.getExtTag());
                             obj.setParams(fromJsonToMap(cacheCluster.getExtParams()));
                             cacheClusters.add(obj);
+                            LOGGER.info("===> cache cluster {} added for dp cluster {}", cacheCluster, proxyObj);
                         }
                     }
                 }
@@ -333,6 +347,7 @@ public class DataProxyConfigRepository implements IRepository {
      * reloadInlongId
      */
     private void reloadInlongId(Map<String, DataProxyCluster> proxyClusterMap) {
+        LOGGER.info("===> reloadInlongId");
         // reload inlong group id
         Map<String, InlongGroupId> groupIdMap = new HashMap<>();
         clusterSetMapper.selectInlongGroupId().forEach(value -> groupIdMap.put(value.getInlongGroupId(), value));
@@ -358,15 +373,22 @@ public class DataProxyConfigRepository implements IRepository {
                 .computeIfAbsent(getInlongId(v.getInlongGroupId(), v.getInlongStreamId()), k -> new HashMap<>())
                 .put(ClusterSwitch.BACKUP_MQ_RESOURCE, v.getKeyValue()));
 
+        LOGGER.info("===> groupIdMap = {}", groupIdMap);
+        LOGGER.info("===> groupParams = {}", groupParams);
+        LOGGER.info("===> streamIdMap = {}", streamIdMap);
+        LOGGER.info("===> streamParams = {}", streamParams);
+
         // build Map<clusterTag, List<InlongIdObject>>
         Map<String, List<InLongIdObject>> inlongIdMap = this.parseInlongId(groupIdMap, groupParams, streamIdMap,
                 streamParams);
+        LOGGER.info("===> inlongIdMap = {}", inlongIdMap);
         // mark inlong id to proxy cluster
         for (Entry<String, DataProxyCluster> entry : proxyClusterMap.entrySet()) {
             String clusterTag = entry.getValue().getProxyCluster().getSetName();
             List<InLongIdObject> inlongIds = inlongIdMap.get(clusterTag);
             if (inlongIds != null) {
                 entry.getValue().getProxyCluster().getInlongIds().addAll(inlongIds);
+                LOGGER.info("===> add inlongIds {} to db cluster {}", inlongIds, entry.getValue().getProxyCluster());
             }
         }
     }
@@ -379,6 +401,7 @@ public class DataProxyConfigRepository implements IRepository {
             Map<String, Map<String, String>> streamParams) {
         Map<String, List<InLongIdObject>> inlongIdMap = new HashMap<>();
         for (Entry<String, InlongStreamId> entry : streamIdMap.entrySet()) {
+            LOGGER.info("===> parse inlong id for stream {}", entry.getValue());
             InlongStreamId streamIdObj = entry.getValue();
             String groupId = streamIdObj.getInlongGroupId();
             InlongGroupId groupIdObj = groupIdMap.get(groupId);

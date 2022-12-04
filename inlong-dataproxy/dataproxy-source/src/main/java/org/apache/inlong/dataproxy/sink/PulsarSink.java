@@ -409,9 +409,11 @@ public class PulsarSink extends AbstractSink implements Configurable, SendMessag
     @Override
     public Status process() throws EventDeliveryException {
         if (!this.canTake) {
+            logger.info("===> canTake is false yet, back off");
             return Status.BACKOFF;
         }
 
+        logger.info("===> begin process, channel = {}", getChannel().getName());
         Status status = Status.READY;
         Channel channel = getChannel();
         Transaction tx = channel.getTransaction();
@@ -419,6 +421,9 @@ public class PulsarSink extends AbstractSink implements Configurable, SendMessag
         try {
             Event event = channel.take();
             if (event != null) {
+                logger.info("===> get event from channel {}, event = {}, event_headers = {}, event_class = {}",
+                        channel.getName(),
+                        event, event.getHeaders(), event.getClass().getName());
                 if (diskRateLimiter != null) {
                     diskRateLimiter.acquire(event.getBody().length);
                 }
@@ -431,6 +436,7 @@ public class PulsarSink extends AbstractSink implements Configurable, SendMessag
                     tx.commit();
                 }
             } else {
+                logger.info("===> get null event, back off");
                 status = Status.BACKOFF;
                 tx.commit();
             }

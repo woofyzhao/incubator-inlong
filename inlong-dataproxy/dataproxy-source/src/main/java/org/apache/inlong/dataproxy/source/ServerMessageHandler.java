@@ -40,7 +40,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.flume.ChannelException;
 import org.apache.flume.Event;
 import org.apache.flume.channel.ChannelProcessor;
-import org.apache.flume.event.EventBuilder;
 import org.apache.inlong.common.monitor.MonitorIndex;
 import org.apache.inlong.common.monitor.MonitorIndexExt;
 import org.apache.inlong.common.msg.AttributeConstants;
@@ -57,6 +56,7 @@ import org.apache.inlong.dataproxy.metrics.audit.AuditUtils;
 import org.apache.inlong.dataproxy.utils.DateTimeUtils;
 import org.apache.inlong.dataproxy.utils.InLongMsgVer;
 import org.apache.inlong.dataproxy.utils.MessageUtils;
+import org.apache.inlong.sdk.commons.protocol.ProxyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +143,8 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
         this.metricItemSet = source.getMetricItemSet();
         this.monitorIndex = monitorIndex;
         this.monitorIndexExt = monitorIndexExt;
+        logger.info("===> created ServerMessageHandler, channelGroup = {}, topic = {}, attr = {}, protocolType = {}",
+                allChannels, topic, attr, protocolType);
     }
 
     private String getRemoteIp(Channel channel) {
@@ -250,8 +252,9 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        logger.info("===> channelRead msg {}", msg);
         if (msg == null) {
-            logger.debug("Get null msg, just skip!");
+            logger.info("===> Get null msg, just skip!");
             return;
         }
         ByteBuf cb = (ByteBuf) msg;
@@ -260,7 +263,7 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
             String strRemoteIP = getRemoteIp(remoteChannel);
             int len = cb.readableBytes();
             if (len == 0 && this.filterEmptyMsg) {
-                logger.debug("Get empty msg from {}, just skip!", strRemoteIP);
+                logger.info("===> Get empty msg from {}, just skip!", strRemoteIP);
                 return;
             }
             // parse message
@@ -270,13 +273,14 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
                 resultMap = serviceDecoder.extractData(cb,
                         strRemoteIP, msgRcvTime, remoteChannel);
                 if (resultMap == null || resultMap.isEmpty()) {
-                    logger.debug("Parse message result is null, from {}", strRemoteIP);
+                    logger.info("===> Parse message result is null! from {}", strRemoteIP);
                     return;
                 }
             } catch (MessageIDException ex) {
-                logger.error("MessageIDException ex = {}", ex);
+                logger.error("MessageIDException ex: ", ex);
                 throw new IOException(ex.getCause());
             }
+            logger.info("===> serviceDecoder.extractData result = {}", resultMap);
             // get msgType from parsed result
             MsgType msgType = (MsgType) resultMap.get(ConfigConstants.MSG_TYPE);
             // get attribute data from parsed result
@@ -285,10 +289,12 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
             if (commonAttrMap == null) {
                 commonAttrMap = new HashMap<>();
             }
+            logger.info("===> msg commonAttrMap = {}", commonAttrMap);
             // check whether extract data failure
             String errCode = commonAttrMap.get(AttributeConstants.MESSAGE_PROCESS_ERRCODE);
             if (!StringUtils.isEmpty(errCode)
                     && !DataProxyErrCode.SUCCESS.getErrCodeStr().equals(errCode)) {
+                logger.info("===> commonAttrMap.errorCode {} is not success!", errCode);
                 MessageUtils.sourceReturnRspPackage(
                         commonAttrMap, resultMap, remoteChannel, msgType);
                 return;
@@ -296,6 +302,7 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
             // process heartbeat message
             if (MsgType.MSG_HEARTBEAT.equals(msgType)
                     || MsgType.MSG_BIN_HEARTBEAT.equals(msgType)) {
+                logger.info("===> ignore MSG_HEARTBEAT or MSG_BIN_HEARTBEAT, msgType = {}!", msgType);
                 MessageUtils.sourceReturnRspPackage(
                         commonAttrMap, resultMap, remoteChannel, msgType);
                 return;
@@ -303,6 +310,7 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
             // reject unsupported messages
             if (commonAttrMap.containsKey(ConfigConstants.FILE_CHECK_DATA)
                     || commonAttrMap.containsKey(ConfigConstants.MINUTE_CHECK_DATA)) {
+                logger.info("===> unsupported message rejected!");
                 commonAttrMap.put(AttributeConstants.MESSAGE_PROCESS_ERRCODE,
                         DataProxyErrCode.UNSUPPORTED_EXTEND_FIELD_VALUE.getErrCodeStr());
                 MessageUtils.sourceReturnRspPackage(
@@ -313,33 +321,38 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
             List<ProxyMessage> msgList =
                     (List<ProxyMessage>) resultMap.get(ConfigConstants.MSG_LIST);
             if (msgList == null) {
+                logger.info("===> msgList is null!");
                 commonAttrMap.put(AttributeConstants.MESSAGE_PROCESS_ERRCODE,
                         DataProxyErrCode.EMPTY_MSG.getErrCodeStr());
                 MessageUtils.sourceReturnRspPackage(
                         commonAttrMap, resultMap, remoteChannel, msgType);
                 return;
             }
+
             // check sink service status
-            if (!ConfigManager.getInstance().isMqClusterReady()) {
-                commonAttrMap.put(AttributeConstants.MESSAGE_PROCESS_ERRCODE,
-                        DataProxyErrCode.SINK_SERVICE_UNREADY.getErrCodeStr());
-                MessageUtils.sourceReturnRspPackage(
-                        commonAttrMap, resultMap, remoteChannel, msgType);
-                return;
-            }
+            /*
+             * remove by woofyzhao if (!ConfigManager.getInstance().isMqClusterReady()) {
+             * logger.info("===> MQ cluster not ready!!!");
+             * commonAttrMap.put(AttributeConstants.MESSAGE_PROCESS_ERRCODE,
+             * DataProxyErrCode.SINK_SERVICE_UNREADY.getErrCodeStr()); MessageUtils.sourceReturnRspPackage(
+             * commonAttrMap, resultMap, remoteChannel, msgType); return; }
+             */
             // convert message data
             Map<String, HashMap<String, List<ProxyMessage>>> messageMap =
                     new HashMap<>(msgList.size());
             if (!convertMsgList(msgList, commonAttrMap, messageMap, strRemoteIP)) {
+                logger.info("===> convertMsgList fail!");
                 MessageUtils.sourceReturnRspPackage(
                         commonAttrMap, resultMap, remoteChannel, msgType);
                 return;
             }
+            logger.info("===> check msg ok, start formatMessagesAndSend!");
             // send messages to channel
             formatMessagesAndSend(ctx, commonAttrMap, resultMap,
                     messageMap, strRemoteIP, msgType, msgRcvTime);
             // return response
             if (!MessageUtils.isSinkRspType(commonAttrMap)) {
+                logger.info("===> send done!");
                 MessageUtils.sourceReturnRspPackage(
                         commonAttrMap, resultMap, remoteChannel, msgType);
             }
@@ -556,7 +569,15 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
                     strBuff.delete(0, strBuff.length());
                 }
                 final byte[] data = inLongMsg.buildArray();
-                Event event = EventBuilder.withBody(data, headers);
+                // by woofyzhao: use ProxyEvent
+                // Event event = EventBuilder.withBody(data, headers);
+                Event event = new ProxyEvent(groupId, streamIdEntry.getKey(), data,
+                        Long.parseLong(strDataTime), strRemoteIP);
+                event.getHeaders().putAll(headers);
+                logger.info("===> create ProxyEvent with groupId = {}, streamId = {}, data.size = {}, dataTime = {},"
+                        + "remoteIp = {}, headers = {}", groupId, streamIdEntry.getKey(), data.length,
+                        Long.parseLong(strDataTime), strRemoteIP, event.getHeaders());
+
                 inLongMsg.reset();
                 Pair<Boolean, String> evenProcType =
                         MessageUtils.getEventProcType(syncSend, proxySend);
@@ -576,6 +597,8 @@ public class ServerMessageHandler extends ChannelInboundHandlerAdapter {
                         .append(DateTimeUtils.ms2yyyyMMddHHmm(longDataTime)).append(AttrConstants.SEPARATOR)
                         .append(DateTimeUtils.ms2yyyyMMddHHmm(msgRcvTime));
                 try {
+                    logger.info("===> processor {} processEvent of type {}", processor.getClass().getSimpleName(),
+                            event.getClass().getName());
                     processor.processEvent(event);
                     monitorIndexExt.incrementAndGet("EVENT_SUCCESS");
                     this.addStatistics(true, data.length, event);

@@ -17,6 +17,8 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.Map;
 /**
  * DataProxySource
  */
+@Data
 public class ProxySource {
 
     private String name;

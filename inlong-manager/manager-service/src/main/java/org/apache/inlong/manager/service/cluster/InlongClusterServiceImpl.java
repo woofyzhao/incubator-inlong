@@ -873,9 +873,11 @@ public class InlongClusterServiceImpl implements InlongClusterService {
 
     @Override
     public String getAllConfig(String clusterName, String md5) {
+        LOGGER.info("===> getAllConfig for cluster {}, md5 {}", clusterName, md5);
         DataProxyConfigResponse response = new DataProxyConfigResponse();
         String configMd5 = proxyRepository.getProxyMd5(clusterName);
         if (configMd5 == null) {
+            LOGGER.info("===> no configMd5 found, return errCode = {}", DataProxyConfigResponse.REQ_PARAMS_ERROR);
             response.setResult(false);
             response.setErrCode(DataProxyConfigResponse.REQ_PARAMS_ERROR);
             return GSON.toJson(response);
@@ -883,6 +885,7 @@ public class InlongClusterServiceImpl implements InlongClusterService {
 
         // same config
         if (configMd5.equals(md5)) {
+            LOGGER.info("===> md5 matches, return NO_UPDATE");
             response.setResult(true);
             response.setErrCode(DataProxyConfigResponse.NOUPDATE);
             response.setMd5(configMd5);
@@ -892,6 +895,7 @@ public class InlongClusterServiceImpl implements InlongClusterService {
 
         String configJson = proxyRepository.getProxyConfigJson(clusterName);
         if (configJson == null) {
+            LOGGER.info("===> configJson is null, return errCode = {}", DataProxyConfigResponse.REQ_PARAMS_ERROR);
             response.setResult(false);
             response.setErrCode(DataProxyConfigResponse.REQ_PARAMS_ERROR);
             return GSON.toJson(response);

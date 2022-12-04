@@ -181,7 +181,7 @@ public class SimpleTcpSource extends BaseSource
 
     @Override
     public synchronized void startSource() {
-        logger.info("start " + this.getName());
+        logger.info("===> start " + this.getName());
         checkBlackListThread = new CheckBlackListThread();
         checkBlackListThread.start();
         // ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
@@ -209,7 +209,7 @@ public class SimpleTcpSource extends BaseSource
         bootstrap.channel(EventLoopUtil.getServerSocketChannelClass(workerGroup));
         EventLoopUtil.enableTriggeredMode(bootstrap);
         bootstrap.group(acceptorGroup, workerGroup);
-        logger.info("load msgFactory=" + msgFactoryName
+        logger.info("===> load msgFactory=" + msgFactoryName
                 + " and serviceDecoderName=" + serviceDecoderName);
 
         ChannelInitializer fac = this.getChannelInitializerFactory();
@@ -227,7 +227,7 @@ public class SimpleTcpSource extends BaseSource
         }
         ConfigManager.getInstance().addSourceReportInfo(
                 host, String.valueOf(port), getProtocolName().toUpperCase());
-        logger.info("Simple TCP Source started at host {}, port {}", host, port);
+        logger.info("===> Simple TCP Source started at host {}, port {}", host, port);
     }
 
     @Override

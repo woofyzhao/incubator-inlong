@@ -17,9 +17,12 @@
 
 package org.apache.inlong.manager.pojo.dataproxy;
 
+import lombok.Data;
+
 /**
  * InlongStreamId
  */
+@Data
 public class InlongStreamId {
 
     private String inlongGroupId;

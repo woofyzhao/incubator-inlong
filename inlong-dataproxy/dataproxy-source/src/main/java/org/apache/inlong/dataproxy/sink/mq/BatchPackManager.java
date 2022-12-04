@@ -93,6 +93,8 @@ public class BatchPackManager {
             BatchPackProfile oldDispatchProfile = this.profileCache.put(dispatchKey, newDispatchProfile);
             this.dispatchQueue.acquire(oldDispatchProfile.getSize());
             this.dispatchQueue.offer(oldDispatchProfile);
+            LOG.info("===> dispatch queue offer profile, cnt = {}, size = {}", oldDispatchProfile.getCount(),
+                    oldDispatchProfile.getSize());
             outCounter.addAndGet(dispatchProfile.getCount());
             newDispatchProfile.addEvent(event, maxPackCount, maxPackSize);
         }

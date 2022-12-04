@@ -94,6 +94,7 @@ public class MessageQueueZoneSink extends AbstractSink implements Configurable {
                 worker.start();
                 this.workers.add(worker);
             }
+            LOG.info("===> {} sink workers started", this.workers.size());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -124,6 +125,7 @@ public class MessageQueueZoneSink extends AbstractSink implements Configurable {
      */
     @Override
     public Status process() throws EventDeliveryException {
+        LOG.info("===> begin process, channel = {}", getChannel().getName());
         this.dispatchManager.outputOvertimeData();
         Channel channel = getChannel();
         Transaction tx = channel.getTransaction();
@@ -133,11 +135,16 @@ public class MessageQueueZoneSink extends AbstractSink implements Configurable {
             // no data
             if (event == null) {
                 tx.commit();
+                LOG.info("===> get null event, back off");
                 return Status.BACKOFF;
             }
+            LOG.info("===> get event {} from channel {}, event = {}, event_headers = {}", event.getClass().getName(),
+                    channel.getName(), event, event.getHeaders());
+
             // ProxyEvent
             if (event instanceof ProxyEvent) {
                 ProxyEvent proxyEvent = (ProxyEvent) event;
+                LOG.info("===> dispatchManager.addEvent {}", proxyEvent);
                 this.dispatchManager.addEvent(proxyEvent);
                 tx.commit();
                 return Status.READY;
@@ -145,10 +152,12 @@ public class MessageQueueZoneSink extends AbstractSink implements Configurable {
             // ProxyPackEvent
             if (event instanceof ProxyPackEvent) {
                 ProxyPackEvent packEvent = (ProxyPackEvent) event;
+                LOG.info("===> dispatchManager.addPackEvent {}", packEvent);
                 this.dispatchManager.addPackEvent(packEvent);
                 tx.commit();
                 return Status.READY;
             }
+            LOG.info("===> unknown event type {}", event.getClass());
             tx.commit();
             this.context.addSendFailMetric();
             return Status.READY;

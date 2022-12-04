@@ -17,12 +17,15 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * DataProxyChannel
  */
+@Data
 public class ProxyChannel {
 
     private String name;

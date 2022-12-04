@@ -20,6 +20,7 @@ package org.apache.inlong.dataproxy.config.loader;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flume.Context;
 import org.apache.inlong.common.pojo.dataproxy.CacheClusterObject;
 import org.apache.inlong.common.pojo.dataproxy.DataProxyCluster;
@@ -30,6 +31,7 @@ import org.apache.inlong.dataproxy.config.pojo.CacheClusterConfig;
  * 
  * ManagerCacheClusterConfigLoader
  */
+@Slf4j
 public class ManagerCacheClusterConfigLoader implements CacheClusterConfigLoader {
 
     /**
@@ -41,7 +43,9 @@ public class ManagerCacheClusterConfigLoader implements CacheClusterConfigLoader
     public List<CacheClusterConfig> load() {
         List<CacheClusterConfig> configList = new ArrayList<>();
         DataProxyCluster dataProxyCluster = RemoteConfigManager.getInstance().getCurrentClusterConfig();
+        log.info("===> dataProxyCluster = {}", dataProxyCluster);
         if (dataProxyCluster == null) {
+            log.info("===> dataProxyCluster is null, use cached configList = {}", configList);
             return configList;
         }
         for (CacheClusterObject obj : dataProxyCluster.getCacheClusterSet().getCacheClusters()) {
@@ -49,6 +53,7 @@ public class ManagerCacheClusterConfigLoader implements CacheClusterConfigLoader
             config.setClusterName(obj.getName());
             config.getParams().putAll(obj.getParams());
             configList.add(config);
+            log.info("===> new cache cluster config added: {}", config);
         }
         return configList;
     }

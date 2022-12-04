@@ -17,12 +17,15 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * DataProxyCluster
  */
+@Data
 public class ProxyClusterObject {
 
     private String name;

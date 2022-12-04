@@ -60,12 +60,13 @@ public class CacheClusterConfigHolder implements Configurable {
         this.reloadInterval = context.getLong(RELOAD_INTERVAL, 60000L);
         String loaderType = context.getString(CACHE_CLUSTER_CONFIG_TYPE,
                 ContextCacheClusterConfigLoader.class.getName());
-        LOG.info("Init CacheClusterConfigLoader,loaderType:{}", loaderType);
+        LOG.info("===> Init CacheClusterConfigLoader,loaderType:{}", loaderType);
         try {
             Class<?> loaderClass = ClassUtils.getClass(loaderType);
             Object loaderObject = loaderClass.getDeclaredConstructor().newInstance();
             if (loaderObject instanceof CacheClusterConfigLoader) {
                 this.loader = (CacheClusterConfigLoader) loaderObject;
+                LOG.info("===> loader of {} created", loaderObject.getClass().getName());
             }
         } catch (Throwable t) {
             LOG.error("Fail to init loader,loaderType:{},error:{}", loaderType, t.getMessage());

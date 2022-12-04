@@ -17,12 +17,15 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * CacheClusterSet
  */
+@Data
 public class CacheClusterSetObject {
 
     private String setName;

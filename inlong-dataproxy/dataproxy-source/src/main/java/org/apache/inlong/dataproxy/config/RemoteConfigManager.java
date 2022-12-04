@@ -89,6 +89,7 @@ public class RemoteConfigManager implements IRepository {
     private Map<String, InLongIdObject> inlongIdMap;
 
     private RemoteConfigManager() {
+        LOGGER.info("===> constructing RemoteConfigManager instance");
     }
 
     /**
@@ -98,18 +99,22 @@ public class RemoteConfigManager implements IRepository {
      */
     @SuppressWarnings("unchecked")
     public static RemoteConfigManager getInstance() {
-        LOGGER.info("create repository for {}" + RemoteConfigManager.class.getSimpleName());
+        LOGGER.info("===> get repository instance for {}", RemoteConfigManager.class.getSimpleName());
         if (isInit && instance != null) {
+            LOGGER.info("===> instance {} already initialized", instance);
             return instance;
         }
         synchronized (RemoteConfigManager.class) {
             if (!isInit) {
+                LOGGER.info("===> creating repository for {}", RemoteConfigManager.class.getSimpleName());
                 instance = new RemoteConfigManager();
                 try {
                     String strReloadInterval = CommonPropertiesHolder.getString(KEY_CONFIG_CHECK_INTERVAL);
                     instance.reloadInterval = NumberUtils.toLong(strReloadInterval, DEFAULT_HEARTBEAT_INTERVAL_MS);
+                    LOGGER.info("===> reloadInterval = {}", instance.reloadInterval);
                     //
                     String ipListParserType = CommonPropertiesHolder.getString(IManagerIpListParser.KEY_MANAGER_TYPE);
+                    LOGGER.info("===> ipListParserType = {}", ipListParserType);
                     Class<? extends IManagerIpListParser> ipListParserClass;
                     ipListParserClass = (Class<? extends IManagerIpListParser>) Class
                             .forName(ipListParserType);
@@ -123,6 +128,7 @@ public class RemoteConfigManager implements IRepository {
                     instance.reload();
                     instance.setReloadTimer();
                     isInit = true;
+                    LOGGER.info("===> RemoteConfigManager instance {} up and started", instance);
                 } catch (Throwable t) {
                     LOGGER.error(t.getMessage(), t);
                 }
@@ -148,7 +154,7 @@ public class RemoteConfigManager implements IRepository {
      * Reload config
      */
     public void reload() {
-        LOGGER.info("start to reload config");
+        LOGGER.info("===> start to reload config");
         String proxyClusterName = CommonPropertiesHolder.getString(KEY_PROXY_CLUSTER_NAME);
         String proxyClusterTag = CommonPropertiesHolder.getString(KEY_PROXY_CLUSTER_TAG);
         if (StringUtils.isBlank(proxyClusterName) || StringUtils.isBlank(proxyClusterTag)) {
@@ -175,6 +181,7 @@ public class RemoteConfigManager implements IRepository {
      * setReloadTimer
      */
     private void setReloadTimer() {
+        LOGGER.info("===> setReloadTimer");
         reloadTimer = new Timer(true);
         TimerTask task = new RepositoryTimerTask<RemoteConfigManager>(this);
         reloadTimer.schedule(task, new Date(System.currentTimeMillis() + reloadInterval), reloadInterval);
@@ -184,6 +191,7 @@ public class RemoteConfigManager implements IRepository {
      * reloadDataProxyConfig
      */
     private boolean reloadDataProxyConfig(String clusterName, String clusterTag, String host) {
+        LOGGER.info("===> start reloadDataProxyConfig for {}-{}-{}", clusterName, clusterTag, host);
         HttpPost httpPost = null;
         try {
             String url = "http://" + host + ConfigConstants.MANAGER_PATH + ConfigConstants.MANAGER_GET_ALL_CONFIG_PATH;
@@ -198,24 +206,27 @@ public class RemoteConfigManager implements IRepository {
             if (StringUtils.isNotBlank(dataProxyConfigMd5)) {
                 request.setMd5(dataProxyConfigMd5);
             }
+            LOGGER.info("===> DataProxyConfigRequest = {}", request);
             httpPost.setEntity(HttpUtils.getEntity(request));
 
             // request with post
-            LOGGER.info("start to request {} to get config info with params {}", url, request);
+            LOGGER.info("===> start to request {} to get config info with params {}", url, request);
             CloseableHttpResponse response = httpClient.execute(httpPost);
             String returnStr = EntityUtils.toString(response.getEntity());
-            LOGGER.info("end to request {} to get config info:{}", url, returnStr);
+            LOGGER.info("===> end to request {} to get config info:{}", url, returnStr);
             // get groupId <-> topic and m value.
 
             DataProxyConfigResponse proxyResponse = GSON.fromJson(returnStr, DataProxyConfigResponse.class);
             if (!proxyResponse.isResult()) {
-                LOGGER.info("Fail to get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
+                LOGGER.info("===> Fail to get config info from url:{}, error code is {}", url,
+                        proxyResponse.getErrCode());
                 return false;
             }
             if (proxyResponse.getErrCode() != DataProxyConfigResponse.SUCC) {
-                LOGGER.info("get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
+                LOGGER.info("===> get config info from url:{}, error code is {}", url, proxyResponse.getErrCode());
                 return true;
             }
+            LOGGER.info("===> proxyResponse = {}", proxyResponse);
 
             this.dataProxyConfigMd5 = proxyResponse.getMd5();
             DataProxyCluster clusterObj = proxyResponse.getData();

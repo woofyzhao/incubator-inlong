@@ -17,12 +17,15 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * InLongId
  */
+@Data
 public class InLongIdObject {
 
     private String inlongId;

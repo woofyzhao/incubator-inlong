@@ -17,9 +17,12 @@
 
 package org.apache.inlong.common.pojo.dataproxy;
 
+import lombok.Data;
+
 /**
  * CacheTopic
  */
+@Data
 public class CacheTopicObject {
 
     private String topic;
